@@ -90,34 +90,7 @@ export async function POST(request: Request) {
       verification,
     };
 
-    // Step 4: Save to Vercel Blob if configured, always save to /tmp as fallback
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      try {
-        const { put } = await import("@vercel/blob");
-        await put("mcul-scanner/quarterly.json", JSON.stringify(result), {
-          access: "public",
-          contentType: "application/json",
-          addRandomSuffix: false,
-        });
-        console.log("[quarterly] Saved to Vercel Blob.");
-      } catch (blobErr) {
-        console.error("[quarterly] Blob save failed:", blobErr);
-      }
-    }
-
-    // Always write to /tmp as a fallback cache
-    try {
-      const fs = await import("fs/promises");
-      await fs.mkdir("/tmp/mcul-scanner", { recursive: true });
-      await fs.writeFile(
-        "/tmp/mcul-scanner/quarterly.json",
-        JSON.stringify(result)
-      );
-      console.log("[quarterly] Saved to /tmp cache.");
-    } catch (tmpErr) {
-      console.error("[quarterly] /tmp save failed:", tmpErr);
-    }
-
+    // Return data directly (no /tmp or Blob writes)
     return Response.json(result);
   } catch (err) {
     console.error("[quarterly] Pipeline error:", err);

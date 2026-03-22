@@ -35,17 +35,7 @@ export async function POST(request: Request) {
       if (headerKey) anthropicApiKey = headerKey;
     }
 
-    // Verify we have some way to call Anthropic
-    if (!anthropicApiKey && !process.env.ANTHROPIC_API_KEY) {
-      return Response.json(
-        {
-          error: "Missing Anthropic API key",
-          detail:
-            "Provide an API key via the request body (anthropicApiKey) or set the ANTHROPIC_API_KEY environment variable.",
-        },
-        { status: 500 }
-      );
-    }
+    const hasAnthropicKey = !!(anthropicApiKey || process.env.ANTHROPIC_API_KEY);
 
     // Step 1: Fetch daily data from all three sources in parallel
     console.log("[daily] Fetching FRED, CFPB, Zillow in parallel...");
@@ -97,43 +87,12 @@ export async function POST(request: Request) {
       sources: { fred, cfpb, zillow },
     };
 
-    // Step 2: Load quarterly baseline from Blob, request body, or skip
-    let quarterly: QuarterlyData | null = quarterlyBaseline ?? null;
-
-    if (!quarterly && process.env.BLOB_READ_WRITE_TOKEN) {
-      try {
-        const { list } = await import("@vercel/blob");
-        const blobs = await list({ prefix: "mcul-scanner/quarterly.json" });
-        if (blobs.blobs.length > 0) {
-          const resp = await fetch(blobs.blobs[0].url);
-          const data = await resp.json();
-          quarterly = data.quarterly ?? data;
-          console.log("[daily] Loaded quarterly baseline from Blob.");
-        }
-      } catch (blobErr) {
-        console.error("[daily] Blob read failed:", blobErr);
-      }
-    }
-
-    // Try /tmp fallback for quarterly baseline
-    if (!quarterly) {
-      try {
-        const fs = await import("fs/promises");
-        const raw = await fs.readFile(
-          "/tmp/mcul-scanner/quarterly.json",
-          "utf-8"
-        );
-        const data = JSON.parse(raw);
-        quarterly = data.quarterly ?? data;
-        console.log("[daily] Loaded quarterly baseline from /tmp cache.");
-      } catch {
-        // No cached quarterly data available
-      }
-    }
+    // Step 2: Use quarterly baseline from request body if provided
+    const quarterly: QuarterlyData | null = quarterlyBaseline ?? null;
 
     if (!quarterly) {
       console.log(
-        "[daily] No quarterly baseline available. Cross-references will be limited."
+        "[daily] No quarterly baseline provided. Cross-references will be limited."
       );
     }
 
@@ -157,28 +116,43 @@ export async function POST(request: Request) {
     };
     console.log(`[daily] ${findings.length} cross-reference findings.`);
 
-    // Step 4: Generate AI narratives
-    console.log("[daily] Generating narratives...");
+    // Step 4: Generate AI narratives (optional, requires API key)
     let narratives;
-    if (quarterly) {
-      narratives = await generateDailyNarratives(
-        dailyData,
-        crossref,
-        quarterly,
-        anthropicApiKey
-      );
+    if (hasAnthropicKey && quarterly) {
+      try {
+        console.log("[daily] Generating narratives...");
+        narratives = await generateDailyNarratives(
+          dailyData,
+          crossref,
+          quarterly,
+          anthropicApiKey
+        );
+        console.log("[daily] Narratives generated.");
+      } catch (narrativeErr) {
+        console.error("[daily] Narrative generation failed (continuing without):", narrativeErr);
+        narratives = {
+          economicSnapshot: "Narrative generation failed. Raw data is still available below.",
+          complaintMonitor: "Narrative generation failed.",
+          housingPulse: "Narrative generation failed.",
+          crossReferenceAlerts: findings,
+        };
+      }
     } else {
+      const reason = !hasAnthropicKey ? "No Anthropic API key" : "No quarterly baseline";
+      console.log(`[daily] ${reason}. Skipping narrative generation.`);
       narratives = {
-        economicSnapshot:
-          "Quarterly baseline not available. Narrative generation requires NCUA quarterly data.",
-        complaintMonitor:
-          "Quarterly baseline not available. Run the quarterly scan first.",
-        housingPulse:
-          "Quarterly baseline not available. Run the quarterly scan first.",
+        economicSnapshot: quarterly
+          ? "Narrative generation skipped (no API key). Raw data available."
+          : "Quarterly baseline not available. Run the quarterly scan first for full narratives.",
+        complaintMonitor: quarterly
+          ? "Narrative generation skipped (no API key)."
+          : "Quarterly baseline not available. Run the quarterly scan first.",
+        housingPulse: quarterly
+          ? "Narrative generation skipped (no API key)."
+          : "Quarterly baseline not available. Run the quarterly scan first.",
         crossReferenceAlerts: findings,
       };
     }
-    console.log("[daily] Narratives generated.");
 
     // Step 5: Run verification
     console.log("[daily] Running verification...");
@@ -198,34 +172,7 @@ export async function POST(request: Request) {
       verification,
     };
 
-    // Step 6: Save to Vercel Blob if configured, always save to /tmp as fallback
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      try {
-        const { put } = await import("@vercel/blob");
-        await put("mcul-scanner/daily.json", JSON.stringify(result), {
-          access: "public",
-          contentType: "application/json",
-          addRandomSuffix: false,
-        });
-        console.log("[daily] Saved to Vercel Blob.");
-      } catch (blobErr) {
-        console.error("[daily] Blob save failed:", blobErr);
-      }
-    }
-
-    // Always write to /tmp as a fallback cache
-    try {
-      const fs = await import("fs/promises");
-      await fs.mkdir("/tmp/mcul-scanner", { recursive: true });
-      await fs.writeFile(
-        "/tmp/mcul-scanner/daily.json",
-        JSON.stringify(result)
-      );
-      console.log("[daily] Saved to /tmp cache.");
-    } catch (tmpErr) {
-      console.error("[daily] /tmp save failed:", tmpErr);
-    }
-
+    // Return data directly (no /tmp or Blob writes)
     return Response.json(result);
   } catch (err) {
     console.error("[daily] Pipeline error:", err);

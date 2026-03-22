@@ -1,7 +1,7 @@
 # MCUL Scanner - Project Status
 
 **Updated:** 2026-03-22
-**Status:** Empty state and /tmp cache fallback working. Ready for deployment without Blob token.
+**Status:** Michigan map SVG, sparklines, severity bars, and visual richness added.
 **URL:** https://mi.dxn.is (not yet deployed)
 **Repo:** local only
 
@@ -47,4 +47,9 @@
 - [x] Scan endpoints write to /tmp cache as fallback
 - [x] Daily scan loads quarterly baseline from /tmp when Blob unavailable
 - [x] Clean empty state UI (no broken skeleton on first load)
+- [x] Michigan map SVG component (both peninsulas, metro dots with scan pulse, size variants)
+- [x] Michigan map in header, empty state, and background watermark
+- [x] Stat tile sparkline decorations
+- [x] Flag card severity bars (critical/warning/info gradients)
+- [x] Section divider CSS with dots
 - [ ] Vercel deployment + domain setup

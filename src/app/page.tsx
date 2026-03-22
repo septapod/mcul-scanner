@@ -373,17 +373,37 @@ function HomeInner() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [q, d, v] = await Promise.allSettled([
-        fetch("/api/data/quarterly").then((r) => (r.ok ? r.json() : null)),
-        fetch("/api/data/daily").then((r) => (r.ok ? r.json() : null)),
-        fetch("/api/data/verification").then((r) => (r.ok ? r.json() : null)),
-      ]);
-      setData({
-        quarterly: q.status === "fulfilled" ? q.value : null,
-        daily: d.status === "fulfilled" ? d.value : null,
-        verification: v.status === "fulfilled" ? v.value : null,
-        analysis: null, // loaded separately when available
-      });
+      // Check localStorage for cached data first
+      const cachedQ = localStorage.getItem("mcul-quarterly");
+      const cachedD = localStorage.getItem("mcul-daily");
+
+      if (cachedQ) {
+        try {
+          const parsed = JSON.parse(cachedQ);
+          setData((prev) => ({
+            ...prev,
+            quarterly: parsed.quarterly || null,
+            analysis: parsed.analysis || null,
+            verification: parsed.verification || prev.verification || null,
+          }));
+        } catch (e) {
+          console.error("Error parsing cached quarterly data:", e);
+        }
+      }
+      if (cachedD) {
+        try {
+          const parsed = JSON.parse(cachedD);
+          setData((prev) => ({
+            ...prev,
+            daily: parsed.dailyData || parsed,
+            verification: parsed.verification || prev.verification || null,
+          }));
+        } catch (e) {
+          console.error("Error parsing cached daily data:", e);
+        }
+      }
+    } catch (err) {
+      console.error("Error loading cached data:", err);
     } finally {
       setLoading(false);
     }
@@ -418,19 +438,52 @@ function HomeInner() {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      setRefreshProgress("Running quarterly scan...");
-      await fetch("/api/scan/quarterly", { method: "POST" });
+      // Run quarterly scan
+      setRefreshProgress("Scanning NCUA data...");
+      const qRes = await fetch("/api/scan/quarterly", { method: "POST" });
+      const qData = qRes.ok ? await qRes.json() : null;
 
-      setRefreshProgress("Running daily scan...");
-      await fetch("/api/scan/daily", { method: "POST" });
+      if (qData?.quarterly) {
+        setData((prev) => ({
+          ...prev,
+          quarterly: qData.quarterly,
+          analysis: qData.analysis,
+          verification: qData.verification,
+        }));
+        // Cache in localStorage
+        localStorage.setItem("mcul-quarterly", JSON.stringify(qData));
+      }
 
-      setRefreshProgress("Loading fresh data...");
-      await fetchData();
+      // Run daily scan, passing quarterly baseline if available
+      setRefreshProgress("Scanning market data...");
+      const dailyBody: Record<string, unknown> = {};
+      if (qData?.quarterly) {
+        dailyBody.quarterly = qData.quarterly;
+      }
+      const dRes = await fetch("/api/scan/daily", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dailyBody),
+      });
+      const dData = dRes.ok ? await dRes.json() : null;
+
+      if (dData) {
+        setData((prev) => ({
+          ...prev,
+          daily: dData.dailyData || dData,
+          verification: dData.verification || prev.verification,
+        }));
+        localStorage.setItem("mcul-daily", JSON.stringify(dData));
+      }
+
+      setRefreshProgress(undefined);
+    } catch (err) {
+      console.error("Refresh failed:", err);
+      setRefreshProgress("Refresh failed. Check console.");
     } finally {
       setRefreshing(false);
-      setRefreshProgress(undefined);
     }
-  }, [fetchData]);
+  }, []);
 
   if (mode === "present") {
     return (
@@ -472,8 +525,7 @@ function HomeInner() {
               <span className="text-[10px] font-mono text-muted uppercase tracking-[0.2em] leading-none">
                 Dixon Strategic Labs
               </span>
-              <span className="text-sm font-medium text-heading leading-tight font-[family-name:var(--font-display)] flex items-center gap-1.5">
-                <MichiganMap size="sm" fillColor="var(--color-accent)" className="w-4 h-5 opacity-50" />
+              <span className="text-sm font-medium text-heading leading-tight font-[family-name:var(--font-display)]">
                 Michigan Credit Union Scanner
               </span>
             </div>
