@@ -10,6 +10,7 @@ import { RefreshButton } from "@/components/ui/refresh-button";
 import { VerificationBadge } from "@/components/ui/verification-badge";
 import { StatTile } from "@/components/ui/stat-tile";
 import { FlagCard } from "@/components/ui/flag-card";
+import { MichiganMap } from "@/components/ui/michigan-map";
 import type {
   QuarterlyData,
   DailyData,
@@ -197,8 +198,14 @@ function DashboardView({
         /* Empty state: no data available yet */
         <div className="glass-card p-12 sm:p-16 text-center max-w-2xl mx-auto">
           <div className="mb-6">
-            <div className="w-12 h-12 rounded-xl mx-auto mb-4" style={{ background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-light))" }}>
-              <span className="flex items-center justify-center h-full text-white font-bold text-sm">MI</span>
+            <div className="flex justify-center mb-4">
+              <MichiganMap
+                size="lg"
+                fillColor="rgba(67,116,129,0.08)"
+                strokeColor="var(--color-accent)"
+                showDots={true}
+                glowColor="rgba(67,116,129,0.15)"
+              />
             </div>
             <h2 className="text-xl font-[family-name:var(--font-display)] font-medium text-heading mb-2">
               Ready to Scan
@@ -446,6 +453,11 @@ function HomeInner() {
       {/* Background glow */}
       <div className="dashboard-bg fixed inset-0 -z-10" />
 
+      {/* Michigan watermark */}
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -z-5 pointer-events-none opacity-[0.02]">
+        <MichiganMap size="hero" strokeColor="var(--color-accent)" />
+      </div>
+
       {/* Header bar */}
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
@@ -460,7 +472,8 @@ function HomeInner() {
               <span className="text-[10px] font-mono text-muted uppercase tracking-[0.2em] leading-none">
                 Dixon Strategic Labs
               </span>
-              <span className="text-sm font-medium text-heading leading-tight font-[family-name:var(--font-display)]">
+              <span className="text-sm font-medium text-heading leading-tight font-[family-name:var(--font-display)] flex items-center gap-1.5">
+                <MichiganMap size="sm" fillColor="var(--color-accent)" className="w-4 h-5 opacity-50" />
                 Michigan Credit Union Scanner
               </span>
             </div>

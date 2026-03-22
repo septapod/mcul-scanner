@@ -36,6 +36,12 @@ export function StatTile({
       {subtitle && (
         <div className="text-[10px] font-mono text-muted mt-1">{subtitle}</div>
       )}
+      {/* Mini sparkline decoration */}
+      <div className="stat-sparkline">
+        {[40, 55, 45, 60, 50, 65, 70, 60].map((h, i) => (
+          <span key={i} style={{ height: `${h}%` }} />
+        ))}
+      </div>
     </div>
   );
 }

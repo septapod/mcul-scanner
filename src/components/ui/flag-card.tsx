@@ -49,10 +49,18 @@ export function FlagCard({
   const normalized = normalizeSeverity(severity);
   const borderColor = BORDER_COLORS[normalized] || "border-l-muted";
 
+  const severityBarClass =
+    normalized === "CRITICAL"
+      ? "critical"
+      : normalized === "WARNING"
+        ? "warning"
+        : "info";
+
   return (
     <div
       className={`glass-card border-l-2 ${borderColor} px-4 py-3 space-y-2`}
     >
+      <div className={`severity-bar ${severityBarClass}`} />
       <div className="flex items-center gap-2 flex-wrap">
         <SeverityBadge severity={normalized} />
         {category && (
