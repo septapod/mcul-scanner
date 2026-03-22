@@ -13,7 +13,7 @@ interface QuarterlyScanResult {
     model: string;
     dataSource: string;
     sections: AnalysisSections;
-  };
+  } | null;
   verification: VerificationReport;
 }
 
@@ -33,38 +33,37 @@ export async function POST(request: Request) {
       if (headerKey) anthropicApiKey = headerKey;
     }
 
-    // Verify we have some way to call Anthropic
-    if (!anthropicApiKey && !process.env.ANTHROPIC_API_KEY) {
-      return Response.json(
-        {
-          error: "Missing Anthropic API key",
-          detail:
-            "Provide an API key via the request body (anthropicApiKey) or set the ANTHROPIC_API_KEY environment variable.",
-        },
-        { status: 500 }
-      );
-    }
+    const hasAnthropicKey = !!(anthropicApiKey || process.env.ANTHROPIC_API_KEY);
 
-    // Step 1: Run NCUA pipeline
+    // Step 1: Run NCUA pipeline (no AI needed, just data)
     console.log("[quarterly] Running NCUA quarterly pipeline...");
     const quarterly = await runQuarterlyPipeline();
     console.log(
       `[quarterly] Pipeline complete: ${quarterly.quartersAnalyzed} quarters, ${quarterly.anomalies.length} anomalies`
     );
 
-    // Step 2: Generate AI narratives
-    console.log("[quarterly] Generating narratives...");
-    const sections = await generateQuarterlyNarratives(
-      quarterly,
-      anthropicApiKey
-    );
-    const analysis = {
-      generatedAt: new Date().toISOString(),
-      model: "claude-sonnet-4-6",
-      dataSource: "NCUA 5300 Call Report",
-      sections,
-    };
-    console.log("[quarterly] Narratives generated.");
+    // Step 2: Generate AI narratives (optional, requires API key)
+    let analysis: QuarterlyScanResult["analysis"] | null = null;
+    if (hasAnthropicKey) {
+      try {
+        console.log("[quarterly] Generating narratives...");
+        const sections = await generateQuarterlyNarratives(
+          quarterly,
+          anthropicApiKey
+        );
+        analysis = {
+          generatedAt: new Date().toISOString(),
+          model: "claude-sonnet-4-6",
+          dataSource: "NCUA 5300 Call Report",
+          sections,
+        };
+        console.log("[quarterly] Narratives generated.");
+      } catch (narrativeErr) {
+        console.error("[quarterly] Narrative generation failed (continuing without):", narrativeErr);
+      }
+    } else {
+      console.log("[quarterly] No Anthropic API key. Skipping narrative generation.");
+    }
 
     // Step 3: Run verification (quarterly-only, no daily data)
     console.log("[quarterly] Running verification...");
@@ -73,7 +72,23 @@ export async function POST(request: Request) {
       `[quarterly] Verification: ${verification.overallPassed ? "PASS" : "FAIL"} (${verification.passedChecks}/${verification.totalChecks})`
     );
 
-    const result: QuarterlyScanResult = { quarterly, analysis, verification };
+    const result: QuarterlyScanResult = {
+      quarterly,
+      analysis: analysis ?? {
+        generatedAt: new Date().toISOString(),
+        model: "none",
+        dataSource: "NCUA 5300 Call Report",
+        sections: {
+          statewideOverview: "Narrative generation pending. Set an Anthropic API key and refresh to generate AI analysis.",
+          anomalyNarratives: [],
+          tierHealthSummary: { tiers: [], synthesis: "Pending AI analysis." },
+          emergingTrends: [],
+          riskConcentrations: [],
+          summaryInsight: "Data loaded successfully. AI narratives will be generated when an API key is available.",
+        },
+      },
+      verification,
+    };
 
     // Step 4: Save to Vercel Blob if configured, always save to /tmp as fallback
     if (process.env.BLOB_READ_WRITE_TOKEN) {
