@@ -195,21 +195,23 @@ function DashboardView({
         <DashboardSkeleton />
       ) : !quarterly && !daily ? (
         /* Empty state: no data available yet */
-        <div className="glass-card p-12 sm:p-16 text-center max-w-xl mx-auto">
-          <h2 className="text-lg font-[family-name:var(--font-display)] font-medium text-heading mb-3">
-            Michigan Credit Union Scanner
-          </h2>
-          <p className="text-muted font-mono text-sm mb-6">
-            No scan data yet. Click &quot;Refresh Data&quot; to run the first scan.
-          </p>
-          <RefreshButton
-            onRefresh={onRefresh}
-            loading={refreshing}
-            progress={refreshProgress}
-          />
-          <p className="text-muted text-xs mt-6">
-            The first scan downloads NCUA data and generates analysis. This takes 2-3 minutes.
-          </p>
+        <div className="glass-card p-12 sm:p-16 text-center max-w-2xl mx-auto">
+          <div className="mb-6">
+            <div className="w-12 h-12 rounded-xl mx-auto mb-4" style={{ background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-light))" }}>
+              <span className="flex items-center justify-center h-full text-white font-bold text-sm">MI</span>
+            </div>
+            <h2 className="text-xl font-[family-name:var(--font-display)] font-medium text-heading mb-2">
+              Ready to Scan
+            </h2>
+            <p className="text-muted text-[15px] max-w-md mx-auto">
+              Click <strong className="text-heading">Refresh Data</strong> in the header above to download NCUA call report data for all Michigan credit unions and generate your first analysis.
+            </p>
+          </div>
+          <div className="border-t border-border/30 pt-5 mt-5">
+            <p className="text-muted font-mono text-xs">
+              The first scan downloads 4 quarters of regulatory data across ~171 institutions. Takes 2-3 minutes.
+            </p>
+          </div>
         </div>
       ) : (
         <>
