@@ -193,6 +193,24 @@ function DashboardView({
 
       {loading && !quarterly ? (
         <DashboardSkeleton />
+      ) : !quarterly && !daily ? (
+        /* Empty state: no data available yet */
+        <div className="glass-card p-12 sm:p-16 text-center max-w-xl mx-auto">
+          <h2 className="text-lg font-[family-name:var(--font-display)] font-medium text-heading mb-3">
+            Michigan Credit Union Scanner
+          </h2>
+          <p className="text-muted font-mono text-sm mb-6">
+            No scan data yet. Click &quot;Refresh Data&quot; to run the first scan.
+          </p>
+          <RefreshButton
+            onRefresh={onRefresh}
+            loading={refreshing}
+            progress={refreshProgress}
+          />
+          <p className="text-muted text-xs mt-6">
+            The first scan downloads NCUA data and generates analysis. This takes 2-3 minutes.
+          </p>
+        </div>
       ) : (
         <>
           {/* Key Metrics strip (from daily data) */}
@@ -295,19 +313,6 @@ function DashboardView({
                 </div>
               </section>
             )}
-
-          {/* Empty state when no data at all */}
-          {!quarterly && !daily && !loading && (
-            <div className="glass-card p-12 text-center">
-              <p className="text-muted font-mono text-sm mb-4">
-                No scan data available yet.
-              </p>
-              <p className="text-muted text-xs">
-                Click &quot;Refresh Data&quot; to run the first scan, or wait
-                for the scheduled pipeline.
-              </p>
-            </div>
-          )}
         </>
       )}
     </main>

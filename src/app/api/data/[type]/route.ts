@@ -15,40 +15,50 @@ export async function GET(
     );
   }
 
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    return Response.json(
-      {
-        error: "Blob storage not configured",
-        detail:
-          "Set BLOB_READ_WRITE_TOKEN to enable data persistence. Run the scan endpoints first to generate data.",
-      },
-      { status: 404 }
-    );
+  // Try Blob first, then /tmp fallback
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      const { list } = await import("@vercel/blob");
+
+      const blobKey =
+        type === "verification"
+          ? "mcul-scanner/daily.json"
+          : `mcul-scanner/${type}.json`;
+
+      const blobs = await list({ prefix: blobKey });
+      if (blobs.blobs.length === 0) {
+        // Fall through to /tmp fallback below
+      } else {
+        const resp = await fetch(blobs.blobs[0].url);
+        const data = await resp.json();
+
+        // For verification type, extract just the verification report from daily data
+        const responseData =
+          type === "verification" ? data.verification ?? data : data;
+
+        return Response.json(responseData, {
+          headers: {
+            "Cache-Control": "public, s-maxage=300",
+          },
+        });
+      }
+    } catch (err) {
+      console.error(`[data/${type}] Blob fetch error, trying /tmp fallback:`, err);
+      // Fall through to /tmp fallback
+    }
   }
 
+  // /tmp cache fallback (works without Blob, persists within function execution)
   try {
-    const { list } = await import("@vercel/blob");
-
-    const blobKey =
+    const fs = await import("fs/promises");
+    const filePath =
       type === "verification"
-        ? "mcul-scanner/daily.json"
-        : `mcul-scanner/${type}.json`;
+        ? "/tmp/mcul-scanner/daily.json"
+        : `/tmp/mcul-scanner/${type}.json`;
 
-    const blobs = await list({ prefix: blobKey });
-    if (blobs.blobs.length === 0) {
-      return Response.json(
-        {
-          error: "No data available",
-          detail: `No ${type} data found. Run the /api/scan/${type === "verification" ? "daily" : type} endpoint first.`,
-        },
-        { status: 404 }
-      );
-    }
+    const raw = await fs.readFile(filePath, "utf-8");
+    const data = JSON.parse(raw);
 
-    const resp = await fetch(blobs.blobs[0].url);
-    const data = await resp.json();
-
-    // For verification type, extract just the verification report from daily data
     const responseData =
       type === "verification" ? data.verification ?? data : data;
 
@@ -57,14 +67,13 @@ export async function GET(
         "Cache-Control": "public, s-maxage=300",
       },
     });
-  } catch (err) {
-    console.error(`[data/${type}] Fetch error:`, err);
+  } catch {
     return Response.json(
       {
-        error: `Failed to fetch ${type} data`,
-        detail: err instanceof Error ? err.message : String(err),
+        error: "No data available",
+        detail: "Run a scan first using the Refresh button.",
       },
-      { status: 500 }
+      { status: 404 }
     );
   }
 }

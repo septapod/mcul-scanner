@@ -1,7 +1,7 @@
 # MCUL Scanner - Project Status
 
 **Updated:** 2026-03-22
-**Status:** Dashboard view and all section components built. Presentation view complete. Ready for deployment.
+**Status:** Empty state and /tmp cache fallback working. Ready for deployment without Blob token.
 **URL:** https://mi.dxn.is (not yet deployed)
 **Repo:** local only
 
@@ -43,4 +43,8 @@
 - [x] PresentationView: 9-beat stage deck (Beat, DotAnimation, PresentationView components)
 - [x] DashboardView full implementation: dashboard-view, statewide-overview, tier-health, anomaly-flags, emerging-trends, risk-concentrations, market-pulse
 - [x] Format helpers (src/lib/format.ts): fmtAssets, fmtMembers, fmtPct, fmtDelinquency, fmtChange, fmtCurrency
+- [x] Data endpoint /tmp fallback when BLOB_READ_WRITE_TOKEN not set
+- [x] Scan endpoints write to /tmp cache as fallback
+- [x] Daily scan loads quarterly baseline from /tmp when Blob unavailable
+- [x] Clean empty state UI (no broken skeleton on first load)
 - [ ] Vercel deployment + domain setup

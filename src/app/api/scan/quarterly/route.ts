@@ -75,7 +75,7 @@ export async function POST(request: Request) {
 
     const result: QuarterlyScanResult = { quarterly, analysis, verification };
 
-    // Step 4: Save to Vercel Blob if configured
+    // Step 4: Save to Vercel Blob if configured, always save to /tmp as fallback
     if (process.env.BLOB_READ_WRITE_TOKEN) {
       try {
         const { put } = await import("@vercel/blob");
@@ -87,12 +87,20 @@ export async function POST(request: Request) {
         console.log("[quarterly] Saved to Vercel Blob.");
       } catch (blobErr) {
         console.error("[quarterly] Blob save failed:", blobErr);
-        // Continue, return data directly
       }
-    } else {
-      console.log(
-        "[quarterly] No BLOB_READ_WRITE_TOKEN, returning data directly."
+    }
+
+    // Always write to /tmp as a fallback cache
+    try {
+      const fs = await import("fs/promises");
+      await fs.mkdir("/tmp/mcul-scanner", { recursive: true });
+      await fs.writeFile(
+        "/tmp/mcul-scanner/quarterly.json",
+        JSON.stringify(result)
       );
+      console.log("[quarterly] Saved to /tmp cache.");
+    } catch (tmpErr) {
+      console.error("[quarterly] /tmp save failed:", tmpErr);
     }
 
     return Response.json(result);

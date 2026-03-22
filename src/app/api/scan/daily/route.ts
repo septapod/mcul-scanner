@@ -115,6 +115,22 @@ export async function POST(request: Request) {
       }
     }
 
+    // Try /tmp fallback for quarterly baseline
+    if (!quarterly) {
+      try {
+        const fs = await import("fs/promises");
+        const raw = await fs.readFile(
+          "/tmp/mcul-scanner/quarterly.json",
+          "utf-8"
+        );
+        const data = JSON.parse(raw);
+        quarterly = data.quarterly ?? data;
+        console.log("[daily] Loaded quarterly baseline from /tmp cache.");
+      } catch {
+        // No cached quarterly data available
+      }
+    }
+
     if (!quarterly) {
       console.log(
         "[daily] No quarterly baseline available. Cross-references will be limited."
@@ -182,7 +198,7 @@ export async function POST(request: Request) {
       verification,
     };
 
-    // Step 6: Save to Vercel Blob if configured
+    // Step 6: Save to Vercel Blob if configured, always save to /tmp as fallback
     if (process.env.BLOB_READ_WRITE_TOKEN) {
       try {
         const { put } = await import("@vercel/blob");
@@ -195,8 +211,19 @@ export async function POST(request: Request) {
       } catch (blobErr) {
         console.error("[daily] Blob save failed:", blobErr);
       }
-    } else {
-      console.log("[daily] No BLOB_READ_WRITE_TOKEN, returning data directly.");
+    }
+
+    // Always write to /tmp as a fallback cache
+    try {
+      const fs = await import("fs/promises");
+      await fs.mkdir("/tmp/mcul-scanner", { recursive: true });
+      await fs.writeFile(
+        "/tmp/mcul-scanner/daily.json",
+        JSON.stringify(result)
+      );
+      console.log("[daily] Saved to /tmp cache.");
+    } catch (tmpErr) {
+      console.error("[daily] /tmp save failed:", tmpErr);
     }
 
     return Response.json(result);
