@@ -1,8 +1,8 @@
 # MCUL Scanner - Project Status
 
 **Updated:** 2026-03-22
-**Status:** Michigan map SVG, sparklines, severity bars, and visual richness added.
-**URL:** https://mi.dxn.is (not yet deployed)
+**Status:** Deployed with localStorage persistence and accurate Michigan SVG.
+**URL:** https://mi.dxn.is
 **Repo:** local only
 
 ## What's Done
@@ -43,13 +43,16 @@
 - [x] PresentationView: 9-beat stage deck (Beat, DotAnimation, PresentationView components)
 - [x] DashboardView full implementation: dashboard-view, statewide-overview, tier-health, anomaly-flags, emerging-trends, risk-concentrations, market-pulse
 - [x] Format helpers (src/lib/format.ts): fmtAssets, fmtMembers, fmtPct, fmtDelinquency, fmtChange, fmtCurrency
-- [x] Data endpoint /tmp fallback when BLOB_READ_WRITE_TOKEN not set
-- [x] Scan endpoints write to /tmp cache as fallback
-- [x] Daily scan loads quarterly baseline from /tmp when Blob unavailable
+- [x] Scan endpoints return data directly (no /tmp or Blob writes)
+- [x] Frontend uses localStorage for data persistence across page loads
+- [x] Daily scan accepts quarterly baseline via request body from frontend
+- [x] Data endpoint is thin proxy (Blob if configured, 404 otherwise)
 - [x] Clean empty state UI (no broken skeleton on first load)
-- [x] Michigan map SVG component (both peninsulas, metro dots with scan pulse, size variants)
+- [x] Michigan map SVG component (accurate react-usa-map paths, metro dots with scan pulse, size variants)
 - [x] Michigan map in header, empty state, and background watermark
 - [x] Stat tile sparkline decorations
 - [x] Flag card severity bars (critical/warning/info gradients)
 - [x] Section divider CSS with dots
-- [ ] Vercel deployment + domain setup
+- [x] Vercel deployment + domain setup (mi.dxn.is)
+- [x] Anthropic API key made truly optional (daily scan works without it)
+- [ ] Add Vercel Blob for server-side persistence (when BLOB_READ_WRITE_TOKEN configured)

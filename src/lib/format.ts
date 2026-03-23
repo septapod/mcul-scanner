@@ -40,6 +40,11 @@ export function fmtPct(val: number, decimals = 2): string {
   return `${val.toFixed(decimals)}%`;
 }
 
+/** Format net worth ratio from basis points: 1278 -> "12.78%" */
+export function fmtNetWorth(bps: number): string {
+  return `${(bps / 100).toFixed(2)}%`;
+}
+
 /** Format delinquency rate: 0.85% */
 export function fmtDelinquency(val: number): string {
   return `${val.toFixed(2)}%`;

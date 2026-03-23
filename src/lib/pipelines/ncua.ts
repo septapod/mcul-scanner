@@ -424,8 +424,8 @@ export function detectAnomalies(quarters: QuarterData[]): Anomaly[] {
       previousValue: prev.avgNetWorthRatio,
       metric: "avgNetWorthRatio",
       detail:
-        `Average net worth ratio moved from ${prev.avgNetWorthRatio.toFixed(2)}% to ` +
-        `${curr.avgNetWorthRatio.toFixed(2)}%.`,
+        `Average net worth ratio moved from ${(prev.avgNetWorthRatio / 100).toFixed(2)}% to ` +
+        `${(curr.avgNetWorthRatio / 100).toFixed(2)}%.`,
     });
   }
 
@@ -511,6 +511,15 @@ export function detectAnomalies(quarters: QuarterData[]): Anomaly[] {
         (v, i) => i === 0 || v < values[i - 1]
       );
 
+      // Format values based on metric type
+      const formatTrendValue = (v: number): string => {
+        if (key === "avgNetWorthRatio") return `${(v / 100).toFixed(2)}%`;
+        if (key === "weightedDelinquencyRate") return `${v.toFixed(2)}%`;
+        if (key === "totalMembers") return v.toLocaleString();
+        return v.toFixed(2);
+      };
+      const formattedValues = values.map(formatTrendValue).join(", ");
+
       if (increasing) {
         anomalies.push({
           severity: "WARNING",
@@ -519,7 +528,7 @@ export function detectAnomalies(quarters: QuarterData[]): Anomaly[] {
           currentValue: values[values.length - 1],
           previousValue: values[0],
           metric: `trend_${key}`,
-          detail: `Values: ${values.join(", ")}`,
+          detail: `Values: ${formattedValues}`,
           valuesByQuarter: Object.fromEntries(
             quarters.map((q, i) => [q.label, values[i]])
           ),
@@ -534,7 +543,7 @@ export function detectAnomalies(quarters: QuarterData[]): Anomaly[] {
           currentValue: values[values.length - 1],
           previousValue: values[0],
           metric: `trend_${key}`,
-          detail: `Values: ${values.join(", ")}`,
+          detail: `Values: ${formattedValues}`,
           valuesByQuarter: Object.fromEntries(
             quarters.map((q, i) => [q.label, values[i]])
           ),

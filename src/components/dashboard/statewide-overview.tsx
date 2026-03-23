@@ -1,6 +1,6 @@
 import type { QuarterData } from "@/lib/pipelines/types";
 import { StatTile } from "@/components/ui/stat-tile";
-import { fmtAssets, fmtMembers, fmtPct, fmtDelinquency, fmtCurrency, fmtChange } from "@/lib/format";
+import { fmtAssets, fmtMembers, fmtNetWorth, fmtDelinquency, fmtCurrency, fmtChange } from "@/lib/format";
 
 interface StatewideOverviewProps {
   quarters: QuarterData[];
@@ -42,8 +42,12 @@ export function StatewideOverview({ quarters }: StatewideOverviewProps) {
     },
     {
       label: "Avg Net Worth Ratio",
-      value: fmtPct(s.avgNetWorthRatio),
-      ...computeChange(s.avgNetWorthRatio, p?.avgNetWorthRatio),
+      value: fmtNetWorth(s.avgNetWorthRatio),
+      ...(p ? (() => {
+        const currPct = s.avgNetWorthRatio / 100;
+        const prevPct = p.avgNetWorthRatio / 100;
+        return computeChange(currPct, prevPct);
+      })() : {}),
     },
     {
       label: "Weighted Delinquency",

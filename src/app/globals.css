@@ -25,6 +25,7 @@
 
 @layer base {
   html {
+    font-size: 18px;
     -webkit-tap-highlight-color: transparent;
   }
   body {
@@ -47,10 +48,17 @@
   --color-surface: #FFFFFF;
   --color-surface-elevated: #F5F5F3;
   --color-border: #E4E4E2;
-  --color-muted: #6B6B78;
+  --color-muted: #4B4B57;
   --color-heading: #0A0A0A;
   --color-foreground: #1A1A1F;
-  --color-accent: #2D5A66;
+  --color-accent: #1D4E5C;
+  --color-accent-light: #2B6B7E;
+  --color-gold: #92700C;
+  --color-coral: #B91C1C;
+  --color-success: #047857;
+  --color-warning: #92400E;
+  --color-danger: #B91C1C;
+  --color-info: #1D4E5C;
 }
 
 .light body {
@@ -175,6 +183,10 @@
 .data-source-pill:hover {
   border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
   background: color-mix(in srgb, var(--color-accent) 5%, transparent);
+}
+
+.light .hero-gold {
+  text-shadow: none;
 }
 
 .light .data-source-pill {

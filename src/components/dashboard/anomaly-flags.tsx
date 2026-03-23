@@ -1,6 +1,23 @@
 import type { Anomaly, AnalysisSections } from "@/lib/pipelines/types";
 import { SeverityBadge } from "@/components/ui/severity-badge";
 
+function formatAnomalyValue(value: number, metric: string): string {
+  if (metric === "avgNetWorthRatio" || metric.startsWith("trend_avgNetWorthRatio")) {
+    return `${(value / 100).toFixed(2)}%`;
+  }
+  if (
+    metric === "weightedDelinquencyRate" ||
+    metric.startsWith("tierDelinquency_") ||
+    metric.startsWith("trend_weightedDelinquencyRate")
+  ) {
+    return `${value.toFixed(2)}%`;
+  }
+  if (metric === "totalMembers" || metric.startsWith("trend_totalMembers")) {
+    return value.toLocaleString();
+  }
+  return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
+}
+
 interface AnomalyFlagsProps {
   anomalies: Anomaly[];
   narratives?: AnalysisSections["anomalyNarratives"];
@@ -63,13 +80,13 @@ export function AnomalyFlags({ anomalies, narratives }: AnomalyFlagsProps) {
               <span className="text-muted">
                 Current:{" "}
                 <span className="text-heading tabular-nums">
-                  {anomaly.currentValue}
+                  {formatAnomalyValue(anomaly.currentValue, anomaly.metric)}
                 </span>
               </span>
               <span className="text-muted">
                 Previous:{" "}
                 <span className="text-heading tabular-nums">
-                  {anomaly.previousValue}
+                  {formatAnomalyValue(anomaly.previousValue, anomaly.metric)}
                 </span>
               </span>
               <span className="text-muted">

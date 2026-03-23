@@ -1,5 +1,5 @@
 import type { QuarterData, AnalysisSections } from "@/lib/pipelines/types";
-import { fmtAssets, fmtPct, fmtDelinquency, fmtChange } from "@/lib/format";
+import { fmtAssets, fmtPct, fmtNetWorth, fmtDelinquency, fmtChange } from "@/lib/format";
 
 interface TierHealthProps {
   quarters: QuarterData[];
@@ -87,7 +87,7 @@ export function TierHealth({ quarters, analysis }: TierHealthProps) {
             })()
           : undefined;
         const nwChange = prevTier
-          ? fmtChange(tier.avgNetWorthRatio, prevTier.avgNetWorthRatio)
+          ? fmtChange(tier.avgNetWorthRatio / 100, prevTier.avgNetWorthRatio / 100)
           : undefined;
         const ltsChange = prevTier
           ? fmtChange(tier.avgLoanToShare, prevTier.avgLoanToShare)
@@ -134,7 +134,7 @@ export function TierHealth({ quarters, analysis }: TierHealthProps) {
               />
               <MetricRow
                 label="Avg Net Worth"
-                value={fmtPct(tier.avgNetWorthRatio)}
+                value={fmtNetWorth(tier.avgNetWorthRatio)}
                 change={nwChange?.text}
                 changeType={nwChange?.type}
               />

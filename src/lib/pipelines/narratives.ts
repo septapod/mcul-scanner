@@ -31,7 +31,8 @@ ABSOLUTE RULES:
 6. Dollar amounts should be formatted with appropriate units ($110.6B, $80.8B, etc.).
 7. When computing quarter-over-quarter changes, use the actual values from the data. Show your math implicitly by citing the before and after values.
 8. Present a balanced mix of positive signals and challenges. Do not paint Michigan CUs or the Michigan economy negatively.
-9. Never use em dashes. Use periods, commas, parentheses, or restructure the sentence instead.`;
+9. Never use em dashes. Use periods, commas, parentheses, or restructure the sentence instead.
+10. Write so that a new employee with limited credit union or financial services experience can understand. When using industry terms (delinquency rate, net worth ratio, loan-to-share ratio, ALM, CECL), include a brief plain-English parenthetical the first time. For example: "delinquency rate (the percentage of loans where borrowers are behind on payments)." Keep explanations natural, not condescending.`;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

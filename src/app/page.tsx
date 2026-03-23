@@ -11,11 +11,18 @@ import { VerificationBadge } from "@/components/ui/verification-badge";
 import { StatTile } from "@/components/ui/stat-tile";
 import { FlagCard } from "@/components/ui/flag-card";
 import { MichiganMap } from "@/components/ui/michigan-map";
+import { StatewideOverview } from "@/components/dashboard/statewide-overview";
+import { TierHealth } from "@/components/dashboard/tier-health";
+import { AnomalyFlags } from "@/components/dashboard/anomaly-flags";
+import { EmergingTrends } from "@/components/dashboard/emerging-trends";
+import { RiskConcentrations } from "@/components/dashboard/risk-concentrations";
+import { MarketPulse } from "@/components/dashboard/market-pulse";
 import type {
   QuarterlyData,
   DailyData,
   VerificationReport,
   AnalysisOutput,
+  DailyCrossRef,
 } from "@/lib/pipelines/types";
 
 // ── Static data ─────────────────────────────────────────────────────────────
@@ -112,7 +119,7 @@ function DashboardView({
       {/* Hero section */}
       <section className="text-center mb-12 sm:mb-16">
         <h1 className="hero-metric font-[family-name:var(--font-display)]">
-          <div className="flex flex-col items-center gap-1 sm:gap-0 sm:flex-row sm:flex-wrap sm:justify-center">
+          <div className="flex flex-col items-center gap-1 sm:gap-x-3 sm:gap-y-1 sm:flex-row sm:flex-wrap sm:justify-center">
             <span className="flex items-center gap-2 sm:gap-3">
               <span className="hero-gold">
                 {latestQuarter?.statewide?.totalCUs ?? "171"}
@@ -221,10 +228,81 @@ function DashboardView({
           </div>
         </div>
       ) : (
-        <>
-          {/* Key Metrics strip (from daily data) */}
+        <div className="space-y-6">
+          {/* 1. Statewide Overview */}
+          {quarterly?.quarters && quarterly.quarters.length > 0 && (
+            <section className="glass-card p-5 sm:p-6">
+              <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent-light mb-4">
+                Statewide Overview
+              </div>
+              {analysis?.sections?.statewideOverview && (
+                <p className="text-[15px] text-foreground leading-relaxed mb-4">
+                  {analysis.sections.statewideOverview}
+                </p>
+              )}
+              <StatewideOverview quarters={quarterly.quarters} />
+            </section>
+          )}
+
+          {/* 2. Tier Health */}
+          {quarterly?.quarters && quarterly.quarters.length > 0 && (
+            <section className="glass-card p-5 sm:p-6">
+              <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent-light mb-4">
+                Tier Health
+              </div>
+              <TierHealth
+                quarters={quarterly.quarters}
+                analysis={analysis?.sections}
+              />
+            </section>
+          )}
+
+          {/* 3. Anomaly Flags */}
+          {quarterly?.anomalies && quarterly.anomalies.length > 0 && (
+            <section className="glass-card p-5 sm:p-6">
+              <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent-light mb-4">
+                Flags &amp; Anomalies
+              </div>
+              <AnomalyFlags
+                anomalies={quarterly.anomalies}
+                narratives={analysis?.sections.anomalyNarratives}
+              />
+            </section>
+          )}
+
+          {/* 4. Emerging Trends */}
+          <section className="glass-card p-5 sm:p-6">
+            <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent-light mb-4">
+              Emerging Trends
+            </div>
+            <EmergingTrends
+              trends={analysis?.sections.emergingTrends}
+            />
+          </section>
+
+          {/* 5. Risk Concentrations */}
+          <section className="glass-card p-5 sm:p-6">
+            <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent-light mb-4">
+              Risk Concentrations
+            </div>
+            <RiskConcentrations
+              risks={analysis?.sections.riskConcentrations}
+            />
+          </section>
+
+          {/* 6. Market Pulse */}
+          <section className="glass-card p-5 sm:p-6">
+            <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent-light mb-4">
+              Market Pulse
+            </div>
+            <MarketPulse
+              dailyData={daily}
+            />
+          </section>
+
+          {/* 7. Key Metrics strip (from daily FRED data) */}
           {daily?.sources?.fred && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {Object.entries(daily.sources.fred)
                 .slice(0, 4)
                 .map(([key, series]) => (
@@ -233,7 +311,7 @@ function DashboardView({
                     label={series.name}
                     value={
                       series.latestValue != null
-                        ? series.unit === "percent"
+                        ? series.unit === "percent" || series.unit === "Percent" || series.unit === "%"
                           ? `${series.latestValue.toFixed(2)}%`
                           : series.latestValue.toLocaleString()
                         : "N/A"
@@ -254,75 +332,7 @@ function DashboardView({
                 ))}
             </div>
           )}
-
-          {/* Anomalies and Flags */}
-          {quarterly?.anomalies && quarterly.anomalies.length > 0 && (
-            <section className="mb-6">
-              <h2 className="text-sm font-[family-name:var(--font-display)] font-medium text-heading mb-3">
-                Flags &amp; Anomalies
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {quarterly.anomalies.slice(0, 6).map((anomaly, i) => (
-                  <FlagCard
-                    key={i}
-                    severity={anomaly.severity}
-                    category={anomaly.category}
-                    headline={anomaly.headline}
-                    narrative={anomaly.detail}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Analysis narratives (from analysis output) */}
-          {analysis?.sections?.anomalyNarratives &&
-            analysis.sections.anomalyNarratives.length > 0 && (
-              <section className="mb-6">
-                <h2 className="text-sm font-[family-name:var(--font-display)] font-medium text-heading mb-3">
-                  Analysis Narratives
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {analysis.sections.anomalyNarratives.map((narrative, i) => (
-                    <FlagCard
-                      key={i}
-                      severity={
-                        (narrative.severity as
-                          | "CRITICAL"
-                          | "WARNING"
-                          | "INFO"
-                          | "OPPORTUNITY") || "INFO"
-                      }
-                      category={narrative.category}
-                      headline={narrative.headline}
-                      narrative={narrative.narrative}
-                      watchItems={narrative.watchItems}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-
-          {/* Risk concentrations */}
-          {analysis?.sections?.riskConcentrations &&
-            analysis.sections.riskConcentrations.length > 0 && (
-              <section className="mb-6">
-                <h2 className="text-sm font-[family-name:var(--font-display)] font-medium text-heading mb-3">
-                  Risk Concentrations
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {analysis.sections.riskConcentrations.map((risk, i) => (
-                    <FlagCard
-                      key={i}
-                      severity={risk.severity}
-                      headline={risk.riskName}
-                      narrative={`${risk.evidence} ${risk.implication}`}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-        </>
+        </div>
       )}
     </main>
   );
@@ -369,6 +379,7 @@ function HomeInner() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshProgress, setRefreshProgress] = useState<string | undefined>();
+  const [reasoningLog, setReasoningLog] = useState<string[]>([]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -435,27 +446,51 @@ function HomeInner() {
     return () => window.removeEventListener("keydown", handler);
   }, [mode, router]);
 
+  const addLog = useCallback((msg: string) => {
+    setReasoningLog((prev) => [...prev, `${new Date().toLocaleTimeString()} > ${msg}`]);
+  }, []);
+
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
+    setReasoningLog([]);
     try {
-      // Run quarterly scan
-      setRefreshProgress("Scanning NCUA data...");
+      // Step 1: Quarterly NCUA scan
+      addLog("Initiating quarterly NCUA pipeline...");
+      addLog("Downloading Q1-Q4 2025 call report data from ncua.gov...");
+      setRefreshProgress("Downloading NCUA data...");
       const qRes = await fetch("/api/scan/quarterly", { method: "POST" });
       const qData = qRes.ok ? await qRes.json() : null;
 
       if (qData?.quarterly) {
+        const q = qData.quarterly;
+        addLog(`Parsed ${q.quartersAnalyzed} quarters of data for ${q.quarters?.[q.quarters.length - 1]?.statewide?.totalCUs || "?"} Michigan credit unions.`);
+        addLog(`Aggregate assets: $${(q.quarters?.[q.quarters.length - 1]?.statewide?.totalAssets / 1e9).toFixed(1)}B`);
+        addLog(`Detected ${q.anomalies?.length || 0} anomalies across ${Object.keys(q.quarters?.[q.quarters.length - 1]?.tiers || {}).length} asset tiers.`);
+        if (qData.analysis?.sections?.statewideOverview && qData.analysis.model !== "none") {
+          addLog("AI narratives generated and verified.");
+        } else {
+          addLog("Data loaded. AI narratives pending (no API key).");
+        }
+        if (qData.verification) {
+          addLog(`Verification: ${qData.verification.passedChecks}/${qData.verification.totalChecks} checks passed.`);
+        }
         setData((prev) => ({
           ...prev,
           quarterly: qData.quarterly,
           analysis: qData.analysis,
           verification: qData.verification,
         }));
-        // Cache in localStorage
         localStorage.setItem("mcul-quarterly", JSON.stringify(qData));
+      } else {
+        addLog("Quarterly scan returned no data. Check server logs.");
       }
 
-      // Run daily scan, passing quarterly baseline if available
-      setRefreshProgress("Scanning market data...");
+      // Step 2: Daily market pulse
+      addLog("Initiating daily market pulse scan...");
+      addLog("Fetching FRED economic indicators (7 series)...");
+      addLog("Fetching CFPB consumer complaints (Michigan CUs)...");
+      addLog("Fetching Zillow housing data (Michigan MSAs)...");
+      setRefreshProgress("Fetching market data...");
       const dailyBody: Record<string, unknown> = {};
       if (qData?.quarterly) {
         dailyBody.quarterly = qData.quarterly;
@@ -468,22 +503,36 @@ function HomeInner() {
       const dData = dRes.ok ? await dRes.json() : null;
 
       if (dData) {
+        const fredCount = Object.keys(dData.dailyData?.sources?.fred || dData.sources?.fred || {}).length;
+        const cfpbTotal = dData.dailyData?.sources?.cfpb?.total || dData.sources?.cfpb?.total || 0;
+        const zillowCount = (dData.dailyData?.sources?.zillow?.zhvi || dData.sources?.zillow?.zhvi || []).length;
+        addLog(`FRED: ${fredCount} economic indicators loaded.`);
+        addLog(`CFPB: ${cfpbTotal} complaints in the last 90 days.`);
+        addLog(`Zillow: ${zillowCount} Michigan MSAs with housing data.`);
+        const findings = dData.crossref?.findings || dData.dailyCrossref?.findings || [];
+        if (findings.length > 0) {
+          addLog(`Cross-reference engine: ${findings.length} findings generated.`);
+        }
         setData((prev) => ({
           ...prev,
           daily: dData.dailyData || dData,
           verification: dData.verification || prev.verification,
         }));
         localStorage.setItem("mcul-daily", JSON.stringify(dData));
+      } else {
+        addLog("Daily scan returned no data. Some sources may be unavailable.");
       }
 
+      addLog("Scan complete.");
       setRefreshProgress(undefined);
     } catch (err) {
       console.error("Refresh failed:", err);
-      setRefreshProgress("Refresh failed. Check console.");
+      addLog(`Error: ${err instanceof Error ? err.message : String(err)}`);
+      setRefreshProgress("Refresh failed. See log below.");
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [addLog]);
 
   if (mode === "present") {
     return (
@@ -539,6 +588,49 @@ function HomeInner() {
           </div>
         </div>
       </header>
+
+      {/* Reasoning log (visible during and after refresh) */}
+      {reasoningLog.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="rounded-xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
+            <div className="px-4 py-2 flex items-center justify-between" style={{ borderBottom: "1px solid var(--color-border)" }}>
+              <span className="font-mono text-xs uppercase tracking-widest" style={{ color: "var(--color-accent-light)" }}>
+                {refreshing ? "Scanning..." : "Scan Log"}
+              </span>
+              {!refreshing && (
+                <button
+                  onClick={() => setReasoningLog([])}
+                  className="text-xs font-mono hover:opacity-70 transition-opacity"
+                  style={{ color: "var(--color-muted)" }}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <div className="px-4 py-3 max-h-64 overflow-y-auto space-y-1">
+              {reasoningLog.map((line, i) => (
+                <div
+                  key={i}
+                  className="font-mono text-sm leading-relaxed"
+                  style={{
+                    color: line.includes("Error") ? "var(--color-coral)" :
+                           line.includes("complete") || line.includes("passed") ? "var(--color-success)" :
+                           "var(--color-muted)",
+                    animation: i === reasoningLog.length - 1 && refreshing ? "fadeIn 0.3s ease" : undefined,
+                  }}
+                >
+                  {line}
+                </div>
+              ))}
+              {refreshing && (
+                <div className="font-mono text-sm animate-pulse" style={{ color: "var(--color-accent-light)" }}>
+                  &gt; ...
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main content */}
       <DashboardView
