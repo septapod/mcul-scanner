@@ -1,7 +1,7 @@
 # MCUL Scanner - Project Status
 
 **Updated:** 2026-03-23
-**Status:** Deployed with WCAG AA contrast, fixed data formatting, all dashboard sections rendering.
+**Status:** Fixed presentation mode, minimum text sizes, removed misleading sparklines. Deployed.
 **URL:** https://mi.dxn.is
 **Repo:** local only
 
@@ -50,7 +50,7 @@
 - [x] Clean empty state UI (no broken skeleton on first load)
 - [x] Michigan map SVG component (accurate react-usa-map paths, metro dots with scan pulse, size variants)
 - [x] Michigan map in header, empty state, and background watermark
-- [x] Stat tile sparkline decorations
+- [x] ~~Stat tile sparkline decorations~~ (removed: were static/misleading)
 - [x] Flag card severity bars (critical/warning/info gradients)
 - [x] Section divider CSS with dots
 - [x] Vercel deployment + domain setup (mi.dxn.is)
@@ -61,4 +61,8 @@
 - [x] All dashboard sections render in page.tsx: statewide overview, tier health, anomaly flags, emerging trends, risk concentrations, market pulse
 - [x] Hero text spacing fixed (gap between metric groups)
 - [x] Narrative system prompt updated for plain-English readability
+- [x] P1: Presentation mode fixed (inline placeholder removed, real component imported with correct prop mapping)
+- [x] P1: Minimum text sizes enforced (no text below 13px across all dashboard components)
+- [x] P2: Removed misleading static sparklines from stat tiles
 - [ ] Add Vercel Blob for server-side persistence (when BLOB_READ_WRITE_TOKEN configured)
+- [ ] Add real data-driven sparklines to stat tiles

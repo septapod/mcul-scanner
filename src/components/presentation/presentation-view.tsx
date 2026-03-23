@@ -48,6 +48,38 @@ function formatTime(): string {
   return `${h12}:${m} ${ampm}`;
 }
 
+function formatAnomalyValue(metric: string, value: number): string {
+  if (metric.includes("delinquency") || metric.includes("Delinquency")) {
+    return `${value.toFixed(2)}%`;
+  }
+  if (metric.includes("net_worth") || metric.includes("NetWorth")) {
+    return `${(value / 100).toFixed(2)}%`;
+  }
+  if (metric.includes("total_cus") || metric.includes("cu_count")) {
+    return value.toLocaleString();
+  }
+  if (metric.includes("total_members") || metric.includes("members")) {
+    return `${(value / 1_000_000).toFixed(1)}M`;
+  }
+  if (value > 1_000_000_000) return `$${(value / 1e9).toFixed(1)}B`;
+  if (value > 1_000_000) return `$${(value / 1e6).toFixed(1)}M`;
+  return value.toLocaleString();
+}
+
+function formatMetricName(metric: string): string {
+  const names: Record<string, string> = {
+    "weighted_delinquency_rate": "Delinquency Rate",
+    "weightedDelinquencyRate": "Delinquency Rate",
+    "total_cus": "Credit Unions",
+    "totalCUs": "Credit Unions",
+    "avg_net_worth_ratio": "Net Worth Ratio",
+    "avgNetWorthRatio": "Net Worth Ratio",
+    "total_members": "Total Members",
+    "totalMembers": "Total Members",
+  };
+  return names[metric] || metric.replace(/_/g, " ").replace(/([A-Z])/g, " $1").trim();
+}
+
 // ── Sparkline SVG ───────────────────────────────────────────────────────────
 
 function DelinquencySparkline({
@@ -185,7 +217,7 @@ const TIER_ORDER = [
 
 // ── Component ───────────────────────────────────────────────────────────────
 
-const TOTAL_BEATS = 9;
+const TOTAL_BEATS = 7;
 
 export function PresentationView({ data }: PresentationViewProps) {
   const router = useRouter();
@@ -275,7 +307,6 @@ export function PresentationView({ data }: PresentationViewProps) {
   // ── Extract data ──────────────────────────────────────────────────────
 
   const qd = data.quarterlyData;
-  const analysis = data.analysis;
 
   // Latest quarter
   const latestQ = qd?.quarters?.[qd.quarters.length - 1] ?? null;
@@ -308,7 +339,7 @@ export function PresentationView({ data }: PresentationViewProps) {
     q.label.replace(/\s\d{4}$/, "")
   );
 
-  // Tiers for beat 5
+  // Tiers for beat 4
   const tiers = latestQ?.tiers ?? {};
   const firstQTiers = firstQ?.tiers ?? {};
 
@@ -331,11 +362,6 @@ export function PresentationView({ data }: PresentationViewProps) {
 
   // Anomalies
   const anomalies: Anomaly[] = qd?.anomalies ?? [];
-  const anomaly1 = anomalies[0] ?? null;
-  const anomaly2 = anomalies[1] ?? null;
-
-  // Summary insight
-  const summaryInsight = analysis?.sections?.summaryInsight ?? null;
 
   // Data source string
   const quartersAnalyzed = qd?.quartersAnalyzed ?? 4;
@@ -420,51 +446,26 @@ export function PresentationView({ data }: PresentationViewProps) {
         </div>
       </Beat>
 
-      {/* ── Beat 3: Consolidation ──────────────────────────────────────── */}
+      {/* ── Beat 3: Consolidation + Delinquency ────────────────────── */}
       <Beat active={currentBeat === 3}>
-        <div className="font-mono text-lg text-muted tracking-[0.12em] uppercase mb-3">
-          Credit Union Count
+        <div className="font-mono text-lg text-muted tracking-[0.12em] uppercase mb-5">
+          The Two Headlines
         </div>
-        <div
-          className="font-[family-name:var(--font-display)] font-bold text-[128px] leading-none tracking-tight text-foreground"
-          style={{ fontVariantNumeric: "tabular-nums" }}
-        >
-          {totalCUs}
-        </div>
-        <div className="text-[28px] font-medium text-muted mt-4 text-center">
-          <span className="text-coral font-bold">{cusLost} credit unions</span>{" "}
-          lost to mergers in{" "}
-          {lastLabel.replace(/Q\d\s/, "")}
+        <div className="flex items-center justify-center gap-6 mb-4">
+          <div className="text-[32px] font-medium text-muted text-center">
+            <span className="text-coral font-bold">{cusLost} fewer CUs</span> due to mergers.
+          </div>
+          <span className="w-1.5 h-1.5 rounded-full bg-border" />
+          <div className="text-[32px] font-medium text-muted text-center">
+            Delinquency rising{" "}
+            <span className="text-coral font-bold">every quarter</span>.
+          </div>
         </div>
         <DotAnimation
           total={totalCUs}
           lost={cusLost}
           animate={currentBeat === 3}
         />
-      </Beat>
-
-      {/* ── Beat 4: Delinquency ────────────────────────────────────────── */}
-      <Beat active={currentBeat === 4}>
-        <div className="font-mono text-lg text-muted tracking-[0.12em] uppercase mb-3">
-          Statewide Delinquency Rate
-        </div>
-        <div className="flex items-center justify-center">
-          <div
-            className="font-[family-name:var(--font-display)] font-bold text-[128px] leading-none tracking-tight"
-            style={{
-              color: "var(--color-coral)",
-              textShadow: "0 0 60px rgba(207,90,90,0.2)",
-              fontVariantNumeric: "tabular-nums",
-            }}
-          >
-            {formatPct(delinquencyRate)}
-          </div>
-          <span className="text-coral text-5xl ml-4">&nearr;</span>
-        </div>
-        <div className="text-[28px] font-medium text-muted mt-4 text-center">
-          Rising <span className="text-coral font-bold">every quarter</span> in{" "}
-          {lastLabel.replace(/Q\d\s/, "")}
-        </div>
         {quarterlyDelinq.length >= 2 && (
           <DelinquencySparkline
             values={quarterlyDelinq}
@@ -473,8 +474,8 @@ export function PresentationView({ data }: PresentationViewProps) {
         )}
       </Beat>
 
-      {/* ── Beat 5: Tier Snapshot ──────────────────────────────────────── */}
-      <Beat active={currentBeat === 5}>
+      {/* ── Beat 4: Tier Snapshot ──────────────────────────────────────── */}
+      <Beat active={currentBeat === 4}>
         <div className="font-mono text-lg text-muted tracking-[0.12em] uppercase mb-5">
           {lastLabel} by Asset Tier
         </div>
@@ -523,9 +524,9 @@ export function PresentationView({ data }: PresentationViewProps) {
                 }`}
                 style={{
                   gridTemplateColumns: "280px 1fr 120px 120px",
-                  opacity: currentBeat === 5 ? 1 : 0,
+                  opacity: currentBeat === 4 ? 1 : 0,
                   transform:
-                    currentBeat === 5
+                    currentBeat === 4
                       ? "translateX(0)"
                       : "translateX(-16px)",
                   transitionDelay: `${0.1 + i * 0.08}s`,
@@ -557,7 +558,7 @@ export function PresentationView({ data }: PresentationViewProps) {
                 </div>
                 <div className="font-mono text-base text-right text-muted">
                   {cuDelta === 0 ? (
-                    <span>&mdash;</span>
+                    <span>-</span>
                   ) : (
                     <span className={cuDelta < 0 ? "text-coral" : ""}>
                       {cuDelta > 0 ? `+${cuDelta}` : cuDelta}
@@ -570,139 +571,114 @@ export function PresentationView({ data }: PresentationViewProps) {
         </div>
       </Beat>
 
-      {/* ── Beat 6: Anomaly 1 ──────────────────────────────────────────── */}
+      {/* ── Beat 5: Key Finding ─────────────────────────────────────── */}
+      <Beat active={currentBeat === 5}>
+        {(() => {
+          // Filter out delinquency and consolidation anomalies (already covered)
+          const uniqueAnomalies = anomalies.filter(
+            (a) =>
+              !a.metric.toLowerCase().includes("delinquency") &&
+              !a.metric.toLowerCase().includes("delinq") &&
+              !a.metric.toLowerCase().includes("total_cus") &&
+              !a.metric.toLowerCase().includes("totalcus") &&
+              !a.metric.toLowerCase().includes("cu_count")
+          );
+          const keyAnomaly = uniqueAnomalies[0] ?? null;
+
+          if (keyAnomaly) {
+            return (
+              <div className="text-center max-w-[900px]">
+                <SeverityBadge severity={keyAnomaly.severity} active={currentBeat === 5} />
+                <div
+                  className="font-[family-name:var(--font-display)] font-bold text-[44px] leading-[1.2] text-heading mb-6 tracking-tight transition-all duration-400 ease-out"
+                  style={{
+                    opacity: currentBeat === 5 ? 1 : 0,
+                    transform: currentBeat === 5 ? "translateY(0)" : "translateY(8px)",
+                    transitionDelay: "0.2s",
+                  }}
+                >
+                  {keyAnomaly.headline}
+                </div>
+                <div
+                  className="font-mono text-2xl text-muted transition-opacity duration-400 ease-out"
+                  style={{
+                    opacity: currentBeat === 5 ? 1 : 0,
+                    transitionDelay: "0.35s",
+                  }}
+                >
+                  {formatMetricName(keyAnomaly.metric)}:{" "}
+                  {typeof keyAnomaly.previousValue === "number" && (
+                    <>
+                      <span className="text-gold font-semibold">
+                        {formatAnomalyValue(keyAnomaly.metric, keyAnomaly.previousValue)}
+                      </span>
+                      {" → "}
+                    </>
+                  )}
+                  <span className="text-coral font-semibold">
+                    {typeof keyAnomaly.currentValue === "number"
+                      ? formatAnomalyValue(keyAnomaly.metric, keyAnomaly.currentValue)
+                      : String(keyAnomaly.currentValue)}
+                  </span>
+                </div>
+              </div>
+            );
+          }
+
+          // Fallback: show highest-delinquency tier finding
+          return (
+            <div className="text-center max-w-[900px]">
+              <SeverityBadge severity="CRITICAL" active={currentBeat === 5} />
+              <div
+                className="font-[family-name:var(--font-display)] font-bold text-[44px] leading-[1.2] text-heading mb-6 tracking-tight transition-all duration-400 ease-out"
+                style={{
+                  opacity: currentBeat === 5 ? 1 : 0,
+                  transform: currentBeat === 5 ? "translateY(0)" : "translateY(8px)",
+                  transitionDelay: "0.2s",
+                }}
+              >
+                {TIER_DISPLAY_NAMES[highestDelinqTier] ?? "Mid-Large"} tier carrying
+                <br />
+                the highest delinquency in the state
+              </div>
+              <div
+                className="font-mono text-2xl text-muted transition-opacity duration-400 ease-out"
+                style={{
+                  opacity: currentBeat === 5 ? 1 : 0,
+                  transitionDelay: "0.35s",
+                }}
+              >
+                {formatPct(highestDelinq)} average delinquency rate
+              </div>
+            </div>
+          );
+        })()}
+      </Beat>
+
+      {/* ── Beat 6: The Year's Story ───────────────────────────────────── */}
       <Beat active={currentBeat === 6}>
-        {anomaly1 ? (
-          <div className="text-center max-w-[900px]">
-            <SeverityBadge severity={anomaly1.severity} active={currentBeat === 6} />
-            <div
-              className="font-[family-name:var(--font-display)] font-bold text-[44px] leading-[1.2] text-heading mb-6 tracking-tight transition-all duration-400 ease-out"
-              style={{
-                opacity: currentBeat === 6 ? 1 : 0,
-                transform: currentBeat === 6 ? "translateY(0)" : "translateY(8px)",
-                transitionDelay: "0.2s",
-              }}
-            >
-              {anomaly1.headline}
-            </div>
-            <div
-              className="font-mono text-2xl text-muted transition-opacity duration-400 ease-out"
-              style={{
-                opacity: currentBeat === 6 ? 1 : 0,
-                transitionDelay: "0.35s",
-              }}
-            >
-              {anomaly1.metric}:{" "}
-              <span className="text-gold font-semibold">
-                {typeof anomaly1.previousValue === "number"
-                  ? anomaly1.previousValue < 1000
-                    ? formatPct(anomaly1.previousValue)
-                    : formatMillions(anomaly1.previousValue)
-                  : String(anomaly1.previousValue)}
-              </span>
-              {" → "}
-              <span className="text-coral font-semibold">
-                {typeof anomaly1.currentValue === "number"
-                  ? anomaly1.currentValue < 1000
-                    ? formatPct(anomaly1.currentValue)
-                    : formatMillions(anomaly1.currentValue)
-                  : String(anomaly1.currentValue)}
-              </span>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center max-w-[900px]">
-            <SeverityBadge severity="WARNING" active={currentBeat === 6} />
-            <div className="font-[family-name:var(--font-display)] font-bold text-[44px] leading-[1.2] text-heading mb-6 tracking-tight">
-              Delinquency has risen every
-              <br />
-              single quarter in 2025
-            </div>
-          </div>
-        )}
+        <div
+          className="font-[family-name:var(--font-display)] font-medium text-[40px] leading-[1.45] text-center max-w-[1000px] transition-all duration-600 ease-out"
+          style={{
+            opacity: currentBeat === 6 ? 1 : 0,
+            transform: currentBeat === 6 ? "translateY(0)" : "translateY(10px)",
+            transitionDelay: "0.15s",
+          }}
+        >
+          <span style={{ color: "var(--color-gold)" }}>Capital is strong.</span>
+          <br />
+          <span style={{ color: "var(--color-coral)" }}>
+            Delinquency is the story.
+          </span>
+          <br />
+          <span style={{ color: "var(--color-info)" }}>
+            And consolidation is accelerating.
+          </span>
+        </div>
       </Beat>
 
-      {/* ── Beat 7: Anomaly 2 ──────────────────────────────────────────── */}
+      {/* ── Beat 7: Closing ────────────────────────────────────────────── */}
       <Beat active={currentBeat === 7}>
-        {anomaly2 ? (
-          <div className="text-center max-w-[900px]">
-            <SeverityBadge severity={anomaly2.severity} active={currentBeat === 7} />
-            <div
-              className="font-[family-name:var(--font-display)] font-bold text-[44px] leading-[1.2] text-heading mb-6 tracking-tight transition-all duration-400 ease-out"
-              style={{
-                opacity: currentBeat === 7 ? 1 : 0,
-                transform: currentBeat === 7 ? "translateY(0)" : "translateY(8px)",
-                transitionDelay: "0.2s",
-              }}
-            >
-              {anomaly2.headline}
-            </div>
-            <div
-              className="font-mono text-2xl text-muted transition-opacity duration-400 ease-out"
-              style={{
-                opacity: currentBeat === 7 ? 1 : 0,
-                transitionDelay: "0.35s",
-              }}
-            >
-              {anomaly2.metric}:{" "}
-              <span className="text-coral font-semibold">
-                {typeof anomaly2.currentValue === "number"
-                  ? anomaly2.currentValue < 1000
-                    ? formatPct(anomaly2.currentValue)
-                    : formatMillions(anomaly2.currentValue)
-                  : String(anomaly2.currentValue)}
-              </span>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center max-w-[900px]">
-            <SeverityBadge severity="CRITICAL" active={currentBeat === 7} />
-            <div className="font-[family-name:var(--font-display)] font-bold text-[44px] leading-[1.2] text-heading mb-6 tracking-tight">
-              Mid-Large tier ($500M-$1B) carrying
-              <br />
-              the highest delinquency in the state
-            </div>
-          </div>
-        )}
-      </Beat>
-
-      {/* ── Beat 8: The Year's Story ───────────────────────────────────── */}
-      <Beat active={currentBeat === 8}>
-        {summaryInsight ? (
-          <div
-            className="font-[family-name:var(--font-display)] font-medium text-[40px] leading-[1.45] text-center max-w-[1000px] text-foreground transition-all duration-600 ease-out"
-            style={{
-              opacity: currentBeat === 8 ? 1 : 0,
-              transform: currentBeat === 8 ? "translateY(0)" : "translateY(10px)",
-              transitionDelay: "0.15s",
-            }}
-          >
-            {summaryInsight}
-          </div>
-        ) : (
-          <div
-            className="font-[family-name:var(--font-display)] font-medium text-[40px] leading-[1.45] text-center max-w-[1000px] transition-all duration-600 ease-out"
-            style={{
-              opacity: currentBeat === 8 ? 1 : 0,
-              transform: currentBeat === 8 ? "translateY(0)" : "translateY(10px)",
-              transitionDelay: "0.15s",
-            }}
-          >
-            <span style={{ color: "var(--color-gold)" }}>Capital is strong.</span>
-            <br />
-            <span style={{ color: "var(--color-coral)" }}>
-              Delinquency is the story.
-            </span>
-            <br />
-            <span style={{ color: "var(--color-info)" }}>
-              And consolidation is accelerating.
-            </span>
-          </div>
-        )}
-      </Beat>
-
-      {/* ── Beat 9: Closing ────────────────────────────────────────────── */}
-      <Beat active={currentBeat === 9}>
         <div className="flex flex-col items-center gap-5 max-w-[900px]">
           {[
             `This scan ran at ${formatTime()}.`,
@@ -720,9 +696,9 @@ export function PresentationView({ data }: PresentationViewProps) {
                     : "text-[28px] text-muted"
               }`}
               style={{
-                opacity: currentBeat === 9 ? (i === 2 ? 0.6 : 1) : 0,
+                opacity: currentBeat === 7 ? (i === 2 ? 0.6 : 1) : 0,
                 transform:
-                  currentBeat === 9
+                  currentBeat === 7
                     ? "translateY(0)"
                     : "translateY(8px)",
                 transitionDelay: `${0.15 + i * 0.35}s`,
