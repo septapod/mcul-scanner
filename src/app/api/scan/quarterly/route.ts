@@ -53,7 +53,7 @@ export async function POST(request: Request) {
         );
         analysis = {
           generatedAt: new Date().toISOString(),
-          model: "claude-sonnet-4-6",
+          model: "claude-opus-4-6",
           dataSource: "NCUA 5300 Call Report",
           sections,
         };
