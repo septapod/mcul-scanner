@@ -164,6 +164,8 @@ export async function fetchAllFRED(): Promise<Record<string, FREDSeries>> {
 
   if (errors.length > 0) {
     console.warn(`[FRED] ${errors.length} errors: ${errors.join("; ")}`);
+    // Store errors in a special key so the caller can see them
+    (results as Record<string, unknown>)["_errors"] = errors;
   }
   console.log(`[FRED] Completed: ${Object.keys(results).length}/${FRED_SERIES.length} series loaded`);
   return results;
