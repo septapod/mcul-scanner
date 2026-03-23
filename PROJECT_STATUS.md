@@ -1,7 +1,7 @@
 # MCUL Scanner - Project Status
 
 **Updated:** 2026-03-23
-**Status:** Fixed presentation mode, minimum text sizes, removed misleading sparklines. Deployed.
+**Status:** Presentation fully rewritten: heat map, market pulse, split-screen growth/consolidation, 7 beats.
 **URL:** https://mi.dxn.is
 **Repo:** local only
 
@@ -40,7 +40,7 @@
 - [x] API route: GET /api/data/[type] (serve quarterly/daily/verification from Blob)
 - [x] Shared UI components: StatTile, SeverityBadge, FlagCard, ModeToggle, ThemeToggle, RefreshButton, VerificationBadge
 - [x] Main page shell rewrite: data fetching, loading skeleton, keyboard shortcuts, presentation mode routing
-- [x] PresentationView: 9-beat stage deck (Beat, DotAnimation, PresentationView components)
+- [x] PresentationView: 7-beat stage deck (Beat, DotAnimation, PresentationView components)
 - [x] DashboardView full implementation: dashboard-view, statewide-overview, tier-health, anomaly-flags, emerging-trends, risk-concentrations, market-pulse
 - [x] Format helpers (src/lib/format.ts): fmtAssets, fmtMembers, fmtPct, fmtDelinquency, fmtChange, fmtCurrency
 - [x] Scan endpoints return data directly (no /tmp or Blob writes)
