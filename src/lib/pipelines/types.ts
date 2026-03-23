@@ -187,6 +187,7 @@ export interface CFPBComplaint {
 
 export interface CFPBData {
   total: number;
+  totalMichiganCUs: number;
   periodStart: string;
   periodEnd: string;
   counts30d: number;

@@ -74,11 +74,15 @@ function CFPBSection({ dailyData }: { dailyData: DailyData }) {
   return (
     <div className="space-y-4">
       {/* Complaint counts */}
+      <div className="text-[15px] text-muted mb-2">
+        Complaints filed in Michigan: {cfpb.total.toLocaleString()}.{" "}
+        Against Michigan-headquartered CUs: {cfpb.totalMichiganCUs.toLocaleString()}.
+      </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatTile label="Total Complaints" value={cfpb.total.toLocaleString()} />
-        <StatTile label="30-Day" value={cfpb.counts30d.toLocaleString()} />
-        <StatTile label="60-Day" value={cfpb.counts60d.toLocaleString()} />
-        <StatTile label="90-Day" value={cfpb.counts90d.toLocaleString()} />
+        <StatTile label="Michigan CU Complaints" value={cfpb.totalMichiganCUs.toLocaleString()} />
+        <StatTile label="30-Day (all)" value={cfpb.counts30d.toLocaleString()} />
+        <StatTile label="60-Day (all)" value={cfpb.counts60d.toLocaleString()} />
+        <StatTile label="90-Day (all)" value={cfpb.counts90d.toLocaleString()} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

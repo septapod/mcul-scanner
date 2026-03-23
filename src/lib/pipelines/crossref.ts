@@ -201,7 +201,7 @@ function crossrefFredNcua(
       findings.push({
         type: "fred_x_ncua",
         severity,
-        headline: `Consumer sentiment at ${sentVal.toFixed(1)} (${sentChange > 0 ? "+" : ""}${sentChange.toFixed(1)}), potential deposit flow risk for $${(totalDeposits / 1e9).toFixed(1)}B in MI CU deposits.`,
+        headline: `Consumer sentiment at ${sentVal.toFixed(1)} (${sentChange > 0 ? "+" : ""}${sentChange.toFixed(1)}), potential deposit flow risk for $${(totalDeposits / 1e9).toFixed(1)}B in Michigan CU deposits.`,
         detail: `Declining consumer sentiment typically precedes deposit outflows or slower deposit growth. Michigan CUs hold $${(totalDeposits / 1e9).toFixed(1)}B in deposits.`,
         indicators: {
           sentiment: sentVal,
@@ -214,7 +214,7 @@ function crossrefFredNcua(
       findings.push({
         type: "fred_x_ncua",
         severity: "OPPORTUNITY",
-        headline: `Consumer sentiment improving at ${sentVal.toFixed(1)} (+${sentChange.toFixed(1)}). Positive signal for $${(totalDeposits / 1e9).toFixed(1)}B in MI CU deposits.`,
+        headline: `Consumer sentiment improving at ${sentVal.toFixed(1)} (+${sentChange.toFixed(1)}). Positive signal for $${(totalDeposits / 1e9).toFixed(1)}B in Michigan CU deposits.`,
         detail: `Rising consumer confidence supports deposit growth and loan demand. YoY sentiment change: ${yoySentChange > 0 ? "+" : ""}${yoySentChange.toFixed(1)} points.`,
         indicators: {
           sentiment: sentVal,
@@ -252,7 +252,7 @@ function crossrefFredNcua(
       findings.push({
         type: "fred_x_ncua",
         severity,
-        headline: `CPI running at ${cpiYoy > 0 ? "+" : ""}${cpiYoy.toFixed(1)}% YoY. Inflation pressure on ${totalMembers.toLocaleString()} MI CU members.`,
+        headline: `CPI running at ${cpiYoy > 0 ? "+" : ""}${cpiYoy.toFixed(1)}% YoY. Inflation pressure on ${totalMembers.toLocaleString()} Michigan CU members.`,
         detail: `Consumer prices up ${cpiYoy.toFixed(1)}% year-over-year (CPI index: ${cpi.latestValue.toFixed(1)}). Elevated inflation erodes member purchasing power, potentially increasing demand for consumer lending while pressuring deposit growth.`,
         indicators: {
           cpiIndex: cpi.latestValue,
@@ -359,7 +359,7 @@ function crossrefCfpbNcua(
     findings.push({
       type: "cfpb_x_ncua",
       severity,
-      headline: `${info.ncuaMatch.name} (${cuMetrics.city ?? "MI"}): ${info.count} complaints with ${stressSignals.length > 0 ? "financial stress signals" : "stable financials"}`,
+      headline: `${info.ncuaMatch.name} (${cuMetrics.city ?? "Michigan"}): ${info.count} complaints with ${stressSignals.length > 0 ? "financial stress signals" : "stable financials"}`,
       detail,
       indicators: {
         complaints90d: info.count,

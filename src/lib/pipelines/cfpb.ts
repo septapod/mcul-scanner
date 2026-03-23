@@ -141,6 +141,7 @@ export async function fetchCFPBComplaints(
 
   const emptyResult: CFPBData = {
     total: 0,
+    totalMichiganCUs: 0,
     periodStart: startDate,
     periodEnd: todayISO(),
     counts30d: 0,
@@ -237,9 +238,19 @@ export async function fetchCFPBComplaints(
     byCompany[company].ncuaMatch = matchCompanyToCU(company);
   }
 
-  // Sort by count descending
+  // Filter byCompany to only Michigan-headquartered CUs
+  const michiganByCompany: Record<string, CFPBCompanyInfo> = {};
+  let michiganCUComplaintCount = 0;
+  for (const [company, info] of Object.entries(byCompany)) {
+    if (info.ncuaMatch) {
+      michiganByCompany[company] = info;
+      michiganCUComplaintCount += info.count;
+    }
+  }
+
+  // Sort by count descending (Michigan CUs only)
   const sortedCompany = Object.fromEntries(
-    Object.entries(byCompany).sort(([, a], [, b]) => b.count - a.count)
+    Object.entries(michiganByCompany).sort(([, a], [, b]) => b.count - a.count)
   );
 
   // Aggregate by product
@@ -278,6 +289,7 @@ export async function fetchCFPBComplaints(
 
   return {
     total: complaints.length,
+    totalMichiganCUs: michiganCUComplaintCount,
     periodStart: startDate,
     periodEnd: todayISO(),
     counts30d,

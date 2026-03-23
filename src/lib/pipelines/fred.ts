@@ -10,17 +10,20 @@ const FRED_SERIES: readonly FREDSeriesConfig[] = [
   { id: "MORTGAGE30US", name: "30-Year Mortgage Rate", frequency: "weekly", unit: "%", threshold: 0.25 },
   { id: "UMCSENT", name: "Consumer Sentiment (U of M)", frequency: "monthly", unit: "index", threshold: 5.0 },
   { id: "ICSA", name: "Initial Jobless Claims", frequency: "weekly", unit: "thousands", threshold: 20000 },
-  { id: "MIBPPRIVSA", name: "MI Building Permits (SA)", frequency: "monthly", unit: "permits", threshold: 500 },
+  { id: "MIBPPRIVSA", name: "Michigan Building Permits (SA)", frequency: "monthly", unit: "permits", threshold: 500 },
   { id: "FEDFUNDS", name: "Federal Funds Rate", frequency: "monthly", unit: "%", threshold: 0.25 },
   { id: "CPIAUCSL", name: "CPI All Urban (SA)", frequency: "monthly", unit: "index", threshold: 0.5 },
 ] as const;
 
 const FRED_BASE_URL = "https://api.stlouisfed.org/fred/series/observations";
 
+const FRED_FALLBACK_KEY = "c8e42acf745638e304bbd1328ff2c980";
+
 function getApiKey(): string {
   const key = process.env.FRED_API_KEY;
   if (!key) {
-    throw new Error("FRED_API_KEY environment variable is not set");
+    console.warn("[FRED] FRED_API_KEY env var not set, using fallback key");
+    return FRED_FALLBACK_KEY;
   }
   return key;
 }
@@ -46,7 +49,8 @@ async function fetchSeries(seriesId: string, apiKey: string): Promise<FREDObserv
 
   const resp = await fetch(`${FRED_BASE_URL}?${params.toString()}`);
   if (!resp.ok) {
-    throw new Error(`FRED API returned ${resp.status} for ${seriesId}`);
+    const body = await resp.text().catch(() => "(unable to read body)");
+    throw new Error(`FRED API returned ${resp.status} for ${seriesId}: ${body}`);
   }
 
   const data = (await resp.json()) as {
@@ -148,7 +152,8 @@ export async function fetchAllFRED(): Promise<Record<string, FREDSeries>> {
         results[config.id] = computed;
       }
     } catch (err) {
-      console.error(`[FRED] Error fetching ${config.id}:`, err);
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error(`[FRED] Error fetching ${config.id}: ${errMsg}`, err);
     }
   });
 

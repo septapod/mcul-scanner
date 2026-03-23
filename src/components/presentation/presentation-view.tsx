@@ -351,7 +351,7 @@ export function PresentationView({ data }: PresentationViewProps) {
   const zillow = dd?.sources?.zillow ?? null;
 
   // FRED indicators
-  const unemployment = fred["MIURN"] ?? fred["UNRATE"] ?? null;
+  const unemployment = fred["MIUR"] ?? fred["UNRATE"] ?? null;
   const mortgageRate = fred["MORTGAGE30US"] ?? null;
   const consumerSentiment = fred["UMCSENT"] ?? null;
 
@@ -873,7 +873,7 @@ export function PresentationView({ data }: PresentationViewProps) {
             }}
           >
             <div className="font-mono text-sm text-muted tracking-wide uppercase mb-2">
-              MI Unemployment
+              Michigan Unemployment
             </div>
             <div className="flex items-baseline gap-3">
               <span className="font-[family-name:var(--font-display)] font-bold text-[48px] text-heading tabular-nums leading-none">
@@ -959,7 +959,7 @@ export function PresentationView({ data }: PresentationViewProps) {
             )}
           </div>
 
-          {/* MI Housing */}
+          {/* Michigan Housing */}
           <div
             className="rounded-xl border border-border bg-surface px-8 py-6 transition-all duration-400 ease-out"
             style={{
@@ -969,7 +969,7 @@ export function PresentationView({ data }: PresentationViewProps) {
             }}
           >
             <div className="font-mono text-sm text-muted tracking-wide uppercase mb-2">
-              MI Housing
+              Michigan Housing
             </div>
             <div className="flex items-baseline gap-3">
               <span className="font-[family-name:var(--font-display)] font-bold text-[48px] text-heading tabular-nums leading-none">
@@ -1024,6 +1024,16 @@ export function PresentationView({ data }: PresentationViewProps) {
               Capital is strong.
             </div>
             <div
+              className="text-[22px] text-muted font-normal mt-1 text-center transition-all duration-500 ease-out"
+              style={{
+                opacity: currentBeat === 6 ? 1 : 0,
+                transform: currentBeat === 6 ? "translateY(0)" : "translateY(10px)",
+                transitionDelay: "0.25s",
+              }}
+            >
+              Average net worth ratio at 12.78%, well above the 7% well-capitalized threshold.
+            </div>
+            <div
               className="font-[family-name:var(--font-display)] font-medium text-[40px] leading-[1.5] text-center transition-all duration-500 ease-out"
               style={{
                 color: "var(--color-coral)",
@@ -1035,6 +1045,16 @@ export function PresentationView({ data }: PresentationViewProps) {
               Delinquency is the watch item.
             </div>
             <div
+              className="text-[22px] text-muted font-normal mt-1 text-center transition-all duration-500 ease-out"
+              style={{
+                opacity: currentBeat === 6 ? 1 : 0,
+                transform: currentBeat === 6 ? "translateY(0)" : "translateY(10px)",
+                transitionDelay: "0.5s",
+              }}
+            >
+              Statewide rate rose from 0.65% to 0.85% across four consecutive quarters.
+            </div>
+            <div
               className="font-[family-name:var(--font-display)] font-medium text-[40px] leading-[1.5] text-center transition-all duration-500 ease-out"
               style={{
                 color: "var(--color-info)",
@@ -1044,6 +1064,16 @@ export function PresentationView({ data }: PresentationViewProps) {
               }}
             >
               The industry is consolidating and growing simultaneously.
+            </div>
+            <div
+              className="text-[22px] text-muted font-normal mt-1 text-center transition-all duration-500 ease-out"
+              style={{
+                opacity: currentBeat === 6 ? 1 : 0,
+                transform: currentBeat === 6 ? "translateY(0)" : "translateY(10px)",
+                transitionDelay: "0.75s",
+              }}
+            >
+              8 fewer institutions, but $4.8B more in total assets than a year ago.
             </div>
           </div>
         )}

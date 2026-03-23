@@ -56,6 +56,7 @@ export async function POST(request: Request) {
         ? cfpbResult.value
         : {
             total: 0,
+            totalMichiganCUs: 0,
             periodStart: "",
             periodEnd: "",
             counts30d: 0,
