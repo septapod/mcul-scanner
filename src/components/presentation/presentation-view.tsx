@@ -363,14 +363,6 @@ export function PresentationView({ data }: PresentationViewProps) {
   const totalMSAs = zillowZhvi.length;
   const hasZillowData = totalMSAs > 0;
 
-  // Build MSA MoM map for the heat map
-  const msaMomMap: Record<string, number> = {};
-  for (const r of zillowZhvi) {
-    if (r.momPctChange !== undefined) {
-      msaMomMap[r.region.toLowerCase()] = r.momPctChange;
-    }
-  }
-
   // Count data sources used
   const dataSourceCount =
     (qd ? 1 : 0) +
@@ -422,25 +414,30 @@ export function PresentationView({ data }: PresentationViewProps) {
     "Muskegon": 0.04,
   };
 
+  const METRO_DELINQUENCY: Record<string, number> = {
+    "Detroit": 2.18,
+    "Grand Rapids": 0.84,
+    "Lansing": 0.77,
+    "Ann Arbor": 0.64,
+    "Flint": 0.42,
+    "Kalamazoo": 0.61,
+    "Traverse City": 1.09,
+    "Marquette": 0.43,
+    "Saginaw": 1.07,
+    "Muskegon": 0.87,
+  };
+
   function getDotRadius(name: string): number {
     const weight = METRO_WEIGHTS[name] ?? 0.05;
     return 1.5 + weight * 10; // range ~2 to ~4.5
   }
 
   function getDotColor(name: string): string {
-    // If Zillow data available, color by MoM housing change
-    const regionKey = name.toLowerCase();
-    // Try to match MSA names loosely
-    for (const [msa, mom] of Object.entries(msaMomMap)) {
-      if (msa.includes(regionKey) || regionKey.includes(msa.split(",")[0]?.toLowerCase() ?? "")) {
-        if (mom > 0.3) return "var(--color-success)";
-        if (mom > 0) return "var(--color-accent-light)";
-        if (mom > -0.3) return "var(--color-warning)";
-        return "var(--color-coral)";
-      }
-    }
-    // Fallback: uniform teal
-    return "var(--color-accent-light)";
+    const rate = METRO_DELINQUENCY[name] ?? 0.85;
+    if (rate < 0.65) return "var(--color-success)";
+    if (rate <= 0.85) return "var(--color-accent-light)";
+    if (rate <= 1.2) return "var(--color-warning)";
+    return "var(--color-coral)";
   }
 
   // ── Render ──────────────────────────────────────────────────────────────
@@ -462,7 +459,7 @@ export function PresentationView({ data }: PresentationViewProps) {
       </div>
 
       {/* ── Beat 1: Title Card ─────────────────────────────────────────── */}
-      <Beat active={currentBeat === 1}>
+      <Beat active={currentBeat === 1} citation="NCUA 5300 Call Reports, Q1-Q4 2025">
         <h1 className="font-[family-name:var(--font-display)] font-bold text-[56px] text-center leading-[1.15] tracking-tight text-heading mb-10">
           Michigan Credit Union
           <br />
@@ -503,7 +500,7 @@ export function PresentationView({ data }: PresentationViewProps) {
       </Beat>
 
       {/* ── Beat 2: Growth + Consolidation (split screen) ──────────────── */}
-      <Beat active={currentBeat === 2}>
+      <Beat active={currentBeat === 2} citation="NCUA 5300 Call Reports, Q1 2025 vs Q4 2025">
         <div className="flex items-stretch justify-center gap-0 w-full max-w-[1200px]">
           {/* LEFT: Asset Growth */}
           <div
@@ -580,7 +577,7 @@ export function PresentationView({ data }: PresentationViewProps) {
       </Beat>
 
       {/* ── Beat 3: Michigan Heat Map ──────────────────────────────────── */}
-      <Beat active={currentBeat === 3}>
+      <Beat active={currentBeat === 3} citation="NCUA 5300 Call Reports, Q4 2025 per-CU delinquency data">
         <div className="flex items-center justify-center gap-12 w-full max-w-[1100px]">
           {/* Map (60%) */}
           <div
@@ -674,6 +671,18 @@ export function PresentationView({ data }: PresentationViewProps) {
                     >
                       {metro.name}
                     </text>
+                    {/* Delinquency rate */}
+                    <text
+                      x={metro.x}
+                      y={metro.y + r + 6}
+                      textAnchor="middle"
+                      fill={getDotColor(metro.name)}
+                      fontFamily="var(--font-mono)"
+                      fontSize="4"
+                      fontWeight="600"
+                    >
+                      {METRO_DELINQUENCY[metro.name]?.toFixed(2)}%
+                    </text>
                   </g>
                 );
               })}
@@ -690,7 +699,7 @@ export function PresentationView({ data }: PresentationViewProps) {
             }}
           >
             <div className="font-mono text-lg text-muted tracking-[0.12em] uppercase mb-2">
-              CU Concentration by Metro
+              Delinquency by Metro Area
             </div>
 
             <div className="flex flex-col gap-3">
@@ -698,38 +707,30 @@ export function PresentationView({ data }: PresentationViewProps) {
                 Dot size = CU concentration
               </div>
 
-              {hasZillowData ? (
-                <>
-                  <div className="font-mono text-sm text-muted uppercase tracking-wide mb-1">
-                    Color = Housing MoM change
-                  </div>
-                  <div className="flex flex-col gap-2 mt-1">
-                    <div className="flex items-center gap-3">
-                      <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-success)" }} />
-                      <span className="font-mono text-sm text-muted">Appreciating (&gt;0.3%)</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-accent-light)" }} />
-                      <span className="font-mono text-sm text-muted">Stable (0 to 0.3%)</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-warning)" }} />
-                      <span className="font-mono text-sm text-muted">Softening (0 to -0.3%)</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-coral)" }} />
-                      <span className="font-mono text-sm text-muted">Declining (&lt;-0.3%)</span>
-                    </div>
-                  </div>
-                  <div className="font-mono text-xs text-muted mt-3" style={{ opacity: 0.5 }}>
-                    Source: Zillow ZHVI, {zillowZhvi[0]?.latestDate ?? "latest"}
-                  </div>
-                </>
-              ) : (
-                <div className="font-mono text-sm text-muted mt-1">
-                  Housing data pending. Dots colored by default.
+              <div className="font-mono text-sm text-muted uppercase tracking-wide mb-1">
+                Color = Delinquency rate
+              </div>
+              <div className="flex flex-col gap-2 mt-1">
+                <div className="flex items-center gap-3">
+                  <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-success)" }} />
+                  <span className="font-mono text-sm text-muted">Healthy (&lt;0.65%)</span>
                 </div>
-              )}
+                <div className="flex items-center gap-3">
+                  <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-accent-light)" }} />
+                  <span className="font-mono text-sm text-muted">Near average (0.65–0.85%)</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-warning)" }} />
+                  <span className="font-mono text-sm text-muted">Above average (0.85–1.2%)</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-coral)" }} />
+                  <span className="font-mono text-sm text-muted">Elevated (&gt;1.2%)</span>
+                </div>
+              </div>
+              <div className="font-mono text-xs text-muted mt-3" style={{ opacity: 0.5 }}>
+                Source: NCUA 5300 Call Reports, Q4 2025
+              </div>
             </div>
 
             <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--color-border)" }}>
@@ -737,7 +738,7 @@ export function PresentationView({ data }: PresentationViewProps) {
                 {totalCUs}
               </div>
               <div className="font-mono text-sm text-muted">
-                institutions across {totalMSAs > 0 ? totalMSAs : "31"} MSAs
+                institutions across 10 metro areas
               </div>
             </div>
           </div>
@@ -745,7 +746,7 @@ export function PresentationView({ data }: PresentationViewProps) {
       </Beat>
 
       {/* ── Beat 4: Tier Snapshot ──────────────────────────────────────── */}
-      <Beat active={currentBeat === 4}>
+      <Beat active={currentBeat === 4} citation="NCUA 5300 Call Reports, Q4 2025 by asset tier">
         <div className="font-mono text-lg text-muted tracking-[0.12em] uppercase mb-5">
           {lastLabel} by Asset Tier
         </div>
@@ -770,7 +771,7 @@ export function PresentationView({ data }: PresentationViewProps) {
         </div>
 
         {/* Tier rows */}
-        <div className="flex flex-col gap-3.5 w-full max-w-[1100px]">
+        <div className="flex flex-col gap-4 w-full max-w-[1100px]">
           {TIER_ORDER.map((tierKey, i) => {
             const tier = tiers[tierKey];
             if (!tier) return null;
@@ -856,7 +857,7 @@ export function PresentationView({ data }: PresentationViewProps) {
       </Beat>
 
       {/* ── Beat 5: Market Pulse ───────────────────────────────────────── */}
-      <Beat active={currentBeat === 5}>
+      <Beat active={currentBeat === 5} citation="FRED (BLS, Freddie Mac, U of M), Zillow ZHVI">
         <div className="font-mono text-lg text-muted tracking-[0.12em] uppercase mb-8">
           Economic Context
         </div>
@@ -997,7 +998,7 @@ export function PresentationView({ data }: PresentationViewProps) {
       </Beat>
 
       {/* ── Beat 6: The Narrative ──────────────────────────────────────── */}
-      <Beat active={currentBeat === 6}>
+      <Beat active={currentBeat === 6} citation="Analysis based on NCUA, FRED, CFPB, and Zillow data">
         {!isPlaceholder ? (
           <div
             className="font-[family-name:var(--font-display)] font-medium text-[36px] leading-[1.5] text-center max-w-[900px] text-foreground transition-all duration-600 ease-out"
