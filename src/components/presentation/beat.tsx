@@ -12,7 +12,7 @@ interface BeatProps {
 export function Beat({ active, children, className = "", citation }: BeatProps) {
   return (
     <div
-      className={`fixed inset-0 flex flex-col items-center justify-center px-20 py-20 z-10 transition-all duration-400 ease-out ${
+      className={`fixed inset-0 flex flex-col items-center justify-center px-20 py-24 z-10 overflow-y-auto transition-all duration-400 ease-out ${
         active
           ? "opacity-100 scale-100 pointer-events-auto"
           : "opacity-0 scale-[0.98] pointer-events-none"

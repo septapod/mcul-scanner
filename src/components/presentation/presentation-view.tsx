@@ -49,16 +49,16 @@ function formatAnomalyValue(metric: string, value: number): string {
 // ── Michigan Map Data ───────────────────────────────────────────────────────
 
 const MICHIGAN_METROS = [
-  { name: "Detroit", x: 690, y: 200, region: "SE" },
-  { name: "Grand Rapids", x: 630, y: 182, region: "W" },
-  { name: "Lansing", x: 655, y: 188, region: "C" },
-  { name: "Ann Arbor", x: 678, y: 198, region: "SE" },
-  { name: "Flint", x: 670, y: 178, region: "E" },
-  { name: "Kalamazoo", x: 625, y: 195, region: "SW" },
-  { name: "Traverse City", x: 635, y: 145, region: "NW" },
-  { name: "Marquette", x: 595, y: 108, region: "UP" },
-  { name: "Saginaw", x: 665, y: 170, region: "E" },
-  { name: "Muskegon", x: 618, y: 172, region: "W" },
+  { name: "Detroit",        x: 695, y: 203, region: "SE", labelDx: 6,   labelDy: -1, anchor: "start" as const },
+  { name: "Grand Rapids",   x: 625, y: 185, region: "W",  labelDx: -8,  labelDy: -2, anchor: "end" as const },
+  { name: "Lansing",        x: 652, y: 192, region: "C",  labelDx: 0,   labelDy: -7, anchor: "middle" as const },
+  { name: "Ann Arbor",      x: 676, y: 200, region: "SE", labelDx: -7,  labelDy: 2,  anchor: "end" as const },
+  { name: "Flint",          x: 672, y: 175, region: "E",  labelDx: 5,   labelDy: -1, anchor: "start" as const },
+  { name: "Kalamazoo",      x: 620, y: 198, region: "SW", labelDx: -7,  labelDy: -1, anchor: "end" as const },
+  { name: "Traverse City",  x: 638, y: 145, region: "NW", labelDx: 0,   labelDy: -7, anchor: "middle" as const },
+  { name: "Marquette",      x: 593, y: 108, region: "UP", labelDx: 5,   labelDy: -1, anchor: "start" as const },
+  { name: "Saginaw",        x: 660, y: 168, region: "E",  labelDx: -7,  labelDy: -1, anchor: "end" as const },
+  { name: "Muskegon",       x: 613, y: 172, region: "W",  labelDx: -7,  labelDy: -1, anchor: "end" as const },
 ];
 
 // Michigan SVG path (from react-usa-map, MIT)
@@ -660,22 +660,22 @@ export function PresentationView({ data }: PresentationViewProps) {
                     />
                     {/* Label */}
                     <text
-                      x={metro.x}
-                      y={metro.y - r - 2}
-                      textAnchor="middle"
+                      x={metro.x + (metro.labelDx ?? 0)}
+                      y={metro.y + (metro.labelDy ?? 0) - r - 2}
+                      textAnchor={metro.anchor ?? "middle"}
                       fill="var(--color-foreground)"
                       fontFamily="var(--font-mono)"
-                      fontSize="4.5"
+                      fontSize="4"
                       fontWeight="500"
-                      opacity="0.8"
+                      opacity="0.7"
                     >
                       {metro.name}
                     </text>
                     {/* Delinquency rate */}
                     <text
-                      x={metro.x}
-                      y={metro.y + r + 6}
-                      textAnchor="middle"
+                      x={metro.x + (metro.labelDx ?? 0)}
+                      y={metro.y + (metro.labelDy ?? 0) - r - 2 + 5}
+                      textAnchor={metro.anchor ?? "middle"}
                       fill={getDotColor(metro.name)}
                       fontFamily="var(--font-mono)"
                       fontSize="4"
