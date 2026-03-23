@@ -360,6 +360,7 @@ function HomeInner() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
+      if (typeof window === "undefined") { setLoading(false); return; }
       // Check localStorage for cached data first
       const cachedQ = localStorage.getItem("mcul-quarterly");
       const cachedD = localStorage.getItem("mcul-daily");
