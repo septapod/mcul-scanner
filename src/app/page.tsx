@@ -479,9 +479,81 @@ function HomeInner() {
       const dData = dRes.ok ? await dRes.json() : null;
 
       if (dData) {
-        const fredCount = Object.keys(dData.dailyData?.sources?.fred || dData.sources?.fred || {}).length;
-        const cfpbTotal = dData.dailyData?.sources?.cfpb?.total || dData.sources?.cfpb?.total || 0;
-        const zillowCount = (dData.dailyData?.sources?.zillow?.zhvi || dData.sources?.zillow?.zhvi || []).length;
+        // Check if FRED data is empty (Vercel IP blocked by FRED API)
+        const dailySources = dData.dailyData?.sources || dData.sources || {};
+        let fredData = dailySources.fred || {};
+        // Filter out _errors key
+        const fredSeriesKeys = Object.keys(fredData).filter(k => !k.startsWith("_"));
+
+        if (fredSeriesKeys.length === 0) {
+          addLog("FRED data empty from server (IP blocked). Fetching from browser...");
+          try {
+            const FRED_KEY = "c8e42acf745638e304bbd1328ff2c980";
+            const SERIES = ["MIUR","MORTGAGE30US","UMCSENT","ICSA","MIBPPRIVSA","FEDFUNDS","CPIAUCSL"];
+            const oneYearAgo = new Date();
+            oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+            const startDate = oneYearAgo.toISOString().slice(0, 10);
+
+            const fredResults: Record<string, unknown> = {};
+            for (const sid of SERIES) {
+              try {
+                const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${sid}&api_key=${FRED_KEY}&file_type=json&observation_start=${startDate}&sort_order=desc&limit=12`;
+                const r = await fetch(url);
+                if (r.ok) {
+                  const json = await r.json();
+                  const obs = (json.observations || [])
+                    .filter((o: {value: string}) => o.value !== ".")
+                    .map((o: {date: string; value: string}) => ({ date: o.date, value: parseFloat(o.value) }));
+                  if (obs.length >= 2) {
+                    fredResults[sid] = {
+                      name: sid,
+                      frequency: "monthly",
+                      unit: "%",
+                      latestDate: obs[0].date,
+                      latestValue: obs[0].value,
+                      previousDate: obs[1].date,
+                      previousValue: obs[1].value,
+                      change: Math.round((obs[0].value - obs[1].value) * 10000) / 10000,
+                      pctChange: obs[1].value ? Math.round(((obs[0].value - obs[1].value) / obs[1].value) * 10000) / 100 : 0,
+                      observations: obs.slice(0, 6),
+                    };
+                  }
+                }
+              } catch { /* skip individual series errors */ }
+            }
+
+            const NAMES: Record<string, string> = {
+              MIUR: "Michigan Unemployment Rate",
+              MORTGAGE30US: "30-Year Mortgage Rate",
+              UMCSENT: "Consumer Sentiment (U of M)",
+              ICSA: "Initial Jobless Claims",
+              MIBPPRIVSA: "Michigan Building Permits (SA)",
+              FEDFUNDS: "Federal Funds Rate",
+              CPIAUCSL: "CPI All Urban (SA)",
+            };
+            for (const [k, v] of Object.entries(fredResults)) {
+              (v as Record<string, unknown>).name = NAMES[k] || k;
+            }
+
+            if (Object.keys(fredResults).length > 0) {
+              fredData = fredResults as Record<string, never>;
+              if (dData.dailyData?.sources) {
+                dData.dailyData.sources.fred = fredResults;
+              } else if (dData.sources) {
+                dData.sources.fred = fredResults;
+              }
+              addLog(`FRED: ${Object.keys(fredResults).length} series fetched from browser.`);
+            } else {
+              addLog("FRED: browser fetch also failed.");
+            }
+          } catch (fredErr) {
+            addLog(`FRED browser fetch error: ${fredErr}`);
+          }
+        }
+
+        const fredCount = Object.keys(fredData).filter(k => !k.startsWith("_")).length;
+        const cfpbTotal = dailySources.cfpb?.total || 0;
+        const zillowCount = (dailySources.zillow?.zhvi || []).length;
         addLog(`FRED: ${fredCount} economic indicators loaded.`);
         addLog(`CFPB: ${cfpbTotal} complaints in the last 90 days.`);
         addLog(`Zillow: ${zillowCount} Michigan MSAs with housing data.`);
