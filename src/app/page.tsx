@@ -219,12 +219,12 @@ function DashboardView({
               Ready to Scan
             </h2>
             <p className="text-muted text-[15px] max-w-md mx-auto">
-              Click <strong className="text-heading">Refresh Data</strong> in the header above to download NCUA call report data for all Michigan credit unions and generate your first analysis.
+              Click <strong className="text-heading">Refresh Data</strong> in the header above to scan NCUA regulatory filings, FRED economic indicators, CFPB consumer complaints, and Zillow housing data for Michigan.
             </p>
           </div>
           <div className="border-t border-border/30 pt-5 mt-5">
             <p className="text-muted font-mono text-sm">
-              The first scan downloads 4 quarters of regulatory data across ~171 institutions. Takes 2-3 minutes.
+              First scan: 4 quarters of NCUA data (~171 CUs), 7 FRED economic series, CFPB complaints, and 31 Michigan housing markets. Takes 2-3 minutes.
             </p>
           </div>
         </div>

@@ -1,7 +1,7 @@
 # MCUL Scanner - Project Status
 
 **Updated:** 2026-03-23
-**Status:** Four fixes deployed: CFPB filtered to MI CUs, FRED key fallback, Michigan labels, narrative context.
+**Status:** Null safety fix deployed for all toLocaleString calls across 11 files.
 **URL:** https://mi.dxn.is
 **Repo:** local only
 
@@ -69,5 +69,6 @@
 - [x] All user-facing "MI" text changed to "Michigan" (presentation, dashboard, FRED series names, crossref headlines)
 - [x] Fixed FRED unemployment key lookup in presentation view (MIURN -> MIUR)
 - [x] Beat 6 narrative context sentences added (capital, delinquency, consolidation)
+- [x] Comprehensive null safety on all toLocaleString calls (safe-format.ts helper + ?? 0 guards across 11 files)
 - [ ] Add Vercel Blob for server-side persistence (when BLOB_READ_WRITE_TOKEN configured)
 - [ ] Add real data-driven sparklines to stat tiles
