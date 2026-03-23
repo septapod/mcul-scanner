@@ -459,7 +459,7 @@ export function PresentationView({ data }: PresentationViewProps) {
       </div>
 
       {/* ── Beat 1: Title Card ─────────────────────────────────────────── */}
-      <Beat active={currentBeat === 1} citation="NCUA 5300 Call Reports, Q1-Q4 2025">
+      <Beat active={currentBeat === 1} citation="Dixon Strategic Labs  |  NCUA 5300 Call Reports, Q1-Q4 2025">
         <h1 className="font-[family-name:var(--font-display)] font-bold text-[56px] text-center leading-[1.15] tracking-tight text-heading mb-10">
           Michigan Credit Union
           <br />
@@ -490,13 +490,6 @@ export function PresentationView({ data }: PresentationViewProps) {
           NCUA 5300 Call Reports, {firstLabel} to {lastLabel}
         </div>
 
-        {/* Dixon Strategic Labs mark */}
-        <div
-          className="fixed bottom-7 left-8 z-50 font-mono text-xs tracking-[0.15em] uppercase"
-          style={{ color: "rgba(67,116,129,0.3)" }}
-        >
-          Dixon Strategic Labs
-        </div>
       </Beat>
 
       {/* ── Beat 2: Growth + Consolidation (split screen) ──────────────── */}
