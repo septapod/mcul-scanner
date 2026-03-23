@@ -75,14 +75,16 @@ function CFPBSection({ dailyData }: { dailyData: DailyData }) {
     <div className="space-y-4">
       {/* Complaint counts */}
       <div className="text-[15px] text-muted mb-2">
-        Complaints filed in Michigan: {cfpb.total.toLocaleString()}.{" "}
-        Against Michigan-headquartered CUs: {cfpb.totalMichiganCUs.toLocaleString()}.
+        Complaints filed in Michigan: {(cfpb.total ?? 0).toLocaleString()}.
+        {"totalMichiganCUs" in cfpb && typeof (cfpb as unknown as Record<string, number>).totalMichiganCUs === "number" && (
+          <> Against Michigan-headquartered CUs: {(cfpb as unknown as Record<string, number>).totalMichiganCUs.toLocaleString()}.</>
+        )}
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatTile label="Michigan CU Complaints" value={cfpb.totalMichiganCUs.toLocaleString()} />
-        <StatTile label="30-Day (all)" value={cfpb.counts30d.toLocaleString()} />
-        <StatTile label="60-Day (all)" value={cfpb.counts60d.toLocaleString()} />
-        <StatTile label="90-Day (all)" value={cfpb.counts90d.toLocaleString()} />
+        <StatTile label="Total Complaints" value={(cfpb.total ?? 0).toLocaleString()} />
+        <StatTile label="30-Day" value={(cfpb.counts30d ?? 0).toLocaleString()} />
+        <StatTile label="60-Day" value={(cfpb.counts60d ?? 0).toLocaleString()} />
+        <StatTile label="90-Day" value={(cfpb.counts90d ?? 0).toLocaleString()} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -1,7 +1,7 @@
 # MCUL Scanner - Project Status
 
 **Updated:** 2026-03-23
-**Status:** Presentation fully rewritten: heat map, market pulse, split-screen growth/consolidation, 7 beats.
+**Status:** Four fixes deployed: CFPB filtered to MI CUs, FRED key fallback, Michigan labels, narrative context.
 **URL:** https://mi.dxn.is
 **Repo:** local only
 
@@ -64,5 +64,10 @@
 - [x] P1: Presentation mode fixed (inline placeholder removed, real component imported with correct prop mapping)
 - [x] P1: Minimum text sizes enforced (no text below 13px across all dashboard components)
 - [x] P2: Removed misleading static sparklines from stat tiles
+- [x] CFPB byCompany filtered to Michigan-headquartered CUs only (non-MI CUs excluded from display)
+- [x] FRED API key fallback to hardcoded public key, better error logging
+- [x] All user-facing "MI" text changed to "Michigan" (presentation, dashboard, FRED series names, crossref headlines)
+- [x] Fixed FRED unemployment key lookup in presentation view (MIURN -> MIUR)
+- [x] Beat 6 narrative context sentences added (capital, delinquency, consolidation)
 - [ ] Add Vercel Blob for server-side persistence (when BLOB_READ_WRITE_TOKEN configured)
 - [ ] Add real data-driven sparklines to stat tiles
