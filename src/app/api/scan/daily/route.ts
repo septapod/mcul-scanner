@@ -47,8 +47,11 @@ export async function POST(request: Request) {
 
     const fred: Record<string, FREDSeries> =
       fredResult.status === "fulfilled" ? fredResult.value : {};
+    const fredSeriesCount = Object.keys(fred).length;
     if (fredResult.status === "rejected") {
-      console.error("[daily] FRED fetch failed:", fredResult.reason);
+      console.error("[daily] FRED fetch rejected:", fredResult.reason);
+    } else {
+      console.log(`[daily] FRED returned ${fredSeriesCount} series`);
     }
 
     const cfpb: CFPBData =

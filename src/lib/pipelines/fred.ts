@@ -137,15 +137,19 @@ function round(n: number, decimals: number): number {
  */
 export async function fetchAllFRED(): Promise<Record<string, FREDSeries>> {
   const apiKey = getApiKey();
+  console.log(`[FRED] Using API key: ${apiKey.slice(0, 8)}...`);
   const results: Record<string, FREDSeries> = {};
+  const errors: string[] = [];
 
-  // Fetch all series in parallel
-  const fetches = FRED_SERIES.map(async (config) => {
+  // Fetch series SEQUENTIALLY to avoid rate limiting
+  for (const config of FRED_SERIES) {
     try {
+      console.log(`[FRED] Fetching ${config.id}...`);
       const observations = await fetchSeries(config.id, apiKey);
+      console.log(`[FRED] ${config.id}: ${observations.length} observations`);
       if (observations.length === 0) {
-        console.warn(`[FRED] No observations for ${config.id}`);
-        return;
+        errors.push(`${config.id}: no observations returned`);
+        continue;
       }
       const computed = computeChanges(observations, config);
       if (computed) {
@@ -153,11 +157,15 @@ export async function fetchAllFRED(): Promise<Record<string, FREDSeries>> {
       }
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
-      console.error(`[FRED] Error fetching ${config.id}: ${errMsg}`, err);
+      console.error(`[FRED] Error fetching ${config.id}: ${errMsg}`);
+      errors.push(`${config.id}: ${errMsg}`);
     }
-  });
+  }
 
-  await Promise.all(fetches);
+  if (errors.length > 0) {
+    console.warn(`[FRED] ${errors.length} errors: ${errors.join("; ")}`);
+  }
+  console.log(`[FRED] Completed: ${Object.keys(results).length}/${FRED_SERIES.length} series loaded`);
   return results;
 }
 
