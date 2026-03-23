@@ -49,16 +49,16 @@ function formatAnomalyValue(metric: string, value: number): string {
 // ── Michigan Map Data ───────────────────────────────────────────────────────
 
 const MICHIGAN_METROS = [
-  { name: "Detroit",        x: 695, y: 203, region: "SE", labelDx: 6,   labelDy: -1, anchor: "start" as const },
+  { name: "Detroit",        x: 682, y: 200, region: "SE", labelDx: 6,   labelDy: -2, anchor: "start" as const },
   { name: "Grand Rapids",   x: 625, y: 185, region: "W",  labelDx: -8,  labelDy: -2, anchor: "end" as const },
-  { name: "Lansing",        x: 652, y: 192, region: "C",  labelDx: 0,   labelDy: -7, anchor: "middle" as const },
-  { name: "Ann Arbor",      x: 676, y: 200, region: "SE", labelDx: -7,  labelDy: 2,  anchor: "end" as const },
-  { name: "Flint",          x: 672, y: 175, region: "E",  labelDx: 5,   labelDy: -1, anchor: "start" as const },
-  { name: "Kalamazoo",      x: 620, y: 198, region: "SW", labelDx: -7,  labelDy: -1, anchor: "end" as const },
-  { name: "Traverse City",  x: 638, y: 145, region: "NW", labelDx: 0,   labelDy: -7, anchor: "middle" as const },
+  { name: "Lansing",        x: 650, y: 190, region: "C",  labelDx: -8,  labelDy: 0,  anchor: "end" as const },
+  { name: "Ann Arbor",      x: 668, y: 200, region: "SE", labelDx: -8,  labelDy: 0,  anchor: "end" as const },
+  { name: "Flint",          x: 668, y: 175, region: "E",  labelDx: 5,   labelDy: -1, anchor: "start" as const },
+  { name: "Kalamazoo",      x: 618, y: 198, region: "SW", labelDx: -8,  labelDy: 0,  anchor: "end" as const },
+  { name: "Traverse City",  x: 636, y: 145, region: "NW", labelDx: 5,   labelDy: -1, anchor: "start" as const },
   { name: "Marquette",      x: 593, y: 108, region: "UP", labelDx: 5,   labelDy: -1, anchor: "start" as const },
-  { name: "Saginaw",        x: 660, y: 168, region: "E",  labelDx: -7,  labelDy: -1, anchor: "end" as const },
-  { name: "Muskegon",       x: 613, y: 172, region: "W",  labelDx: -7,  labelDy: -1, anchor: "end" as const },
+  { name: "Saginaw",        x: 658, y: 166, region: "E",  labelDx: -8,  labelDy: 0,  anchor: "end" as const },
+  { name: "Muskegon",       x: 613, y: 172, region: "W",  labelDx: -8,  labelDy: 0,  anchor: "end" as const },
 ];
 
 // Michigan SVG path (from react-usa-map, MIT)
@@ -107,7 +107,7 @@ function DelinquencySparkline({
   });
 
   return (
-    <div className="mt-8 w-[600px] h-[160px]">
+    <div className="mt-4 w-[500px] h-[120px]">
       <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMidYMid meet" className="w-full h-full">
         <defs>
           <linearGradient id="coralGrad" x1="0" y1="0" x2="0" y2="1">
@@ -582,7 +582,7 @@ export function PresentationView({ data }: PresentationViewProps) {
             }}
           >
             <svg
-              viewBox="560 75 150 150"
+              viewBox="555 70 160 160"
               className="w-full max-w-[520px]"
               xmlns="http://www.w3.org/2000/svg"
               aria-label="Michigan credit union heat map"
@@ -740,14 +740,14 @@ export function PresentationView({ data }: PresentationViewProps) {
 
       {/* ── Beat 4: Tier Snapshot ──────────────────────────────────────── */}
       <Beat active={currentBeat === 4} citation="NCUA 5300 Call Reports, Q4 2025 by asset tier">
-        <div className="font-mono text-lg text-muted tracking-[0.12em] uppercase mb-5">
+        <div className="font-mono text-base text-muted tracking-[0.12em] uppercase mb-3">
           {lastLabel} by Asset Tier
         </div>
 
         {/* Header row */}
         <div
-          className="grid gap-5 w-full max-w-[1100px] px-6 pb-2"
-          style={{ gridTemplateColumns: "280px 1fr 120px 140px" }}
+          className="grid gap-4 w-full max-w-[1100px] px-5 pb-1"
+          style={{ gridTemplateColumns: "260px 1fr 100px 120px" }}
         >
           <span className="font-mono text-sm text-muted tracking-[0.1em] uppercase">
             Tier
@@ -764,7 +764,7 @@ export function PresentationView({ data }: PresentationViewProps) {
         </div>
 
         {/* Tier rows */}
-        <div className="flex flex-col gap-4 w-full max-w-[1100px]">
+        <div className="flex flex-col gap-2.5 w-full max-w-[1100px]">
           {TIER_ORDER.map((tierKey, i) => {
             const tier = tiers[tierKey];
             if (!tier) return null;
@@ -782,13 +782,13 @@ export function PresentationView({ data }: PresentationViewProps) {
             return (
               <div
                 key={tierKey}
-                className={`grid gap-5 items-center px-6 py-4 rounded-xl border transition-all duration-350 ease-out ${
+                className={`grid gap-4 items-center px-5 py-3 rounded-lg border transition-all duration-350 ease-out ${
                   isHighest
                     ? "border-coral/40 bg-coral/[0.08]"
                     : "border-border bg-surface"
                 }`}
                 style={{
-                  gridTemplateColumns: "280px 1fr 120px 140px",
+                  gridTemplateColumns: "260px 1fr 100px 120px",
                   opacity: currentBeat === 4 ? 1 : 0,
                   transform:
                     currentBeat === 4
@@ -797,13 +797,13 @@ export function PresentationView({ data }: PresentationViewProps) {
                   transitionDelay: `${0.1 + i * 0.08}s`,
                 }}
               >
-                <div className="font-[family-name:var(--font-display)] font-semibold text-[22px] text-foreground">
+                <div className="font-[family-name:var(--font-display)] font-semibold text-[18px] text-foreground">
                   {TIER_DISPLAY_NAMES[tierKey] ?? tierKey}
-                  <span className="font-mono text-base text-muted ml-2">
+                  <span className="font-mono text-sm text-muted ml-2">
                     {tier.cuCount} CUs
                   </span>
                 </div>
-                <div className="relative h-7 bg-white/[0.03] rounded-md overflow-hidden">
+                <div className="relative h-5 bg-white/[0.03] rounded-md overflow-hidden">
                   <div
                     className="h-full rounded-md transition-[width] duration-600"
                     style={{
@@ -815,13 +815,13 @@ export function PresentationView({ data }: PresentationViewProps) {
                   />
                 </div>
                 <div
-                  className={`font-mono text-xl font-semibold text-right ${
-                    isHighest ? "text-coral text-[22px] font-bold" : "text-foreground"
+                  className={`font-mono text-lg font-semibold text-right ${
+                    isHighest ? "text-coral font-bold" : "text-foreground"
                   }`}
                 >
                   {formatPct(tier.avgDelinquencyRate)}
                 </div>
-                <div className="font-mono text-base text-right text-muted">
+                <div className="font-mono text-sm text-right text-muted">
                   {memberDisplay}
                 </div>
               </div>
@@ -832,7 +832,7 @@ export function PresentationView({ data }: PresentationViewProps) {
         {/* Delinquency sparkline below tiers */}
         {quarterlyDelinq.length >= 2 && (
           <div
-            className="mt-6 transition-all duration-500 ease-out"
+            className="mt-4 transition-all duration-500 ease-out"
             style={{
               opacity: currentBeat === 4 ? 1 : 0,
               transitionDelay: "0.6s",
