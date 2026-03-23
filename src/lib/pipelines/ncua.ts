@@ -439,11 +439,11 @@ export function detectAnomalies(quarters: QuarterData[]): Anomaly[] {
     anomalies.push({
       severity,
       category: "Membership",
-      headline: `Statewide membership ${direction} ${Math.abs(memberPct).toFixed(1)}% (${Math.abs(memberChange).toLocaleString()} members)`,
+      headline: `Statewide membership ${direction} ${Math.abs(memberPct).toFixed(1)}% (${(Math.abs(memberChange) ?? 0).toLocaleString()} members)`,
       currentValue: curr.totalMembers,
       previousValue: prev.totalMembers,
       metric: "totalMembers",
-      detail: `Total membership moved from ${prev.totalMembers.toLocaleString()} to ${curr.totalMembers.toLocaleString()}.`,
+      detail: `Total membership moved from ${(prev.totalMembers ?? 0).toLocaleString()} to ${(curr.totalMembers ?? 0).toLocaleString()}.`,
     });
   }
 
@@ -515,7 +515,7 @@ export function detectAnomalies(quarters: QuarterData[]): Anomaly[] {
       const formatTrendValue = (v: number): string => {
         if (key === "avgNetWorthRatio") return `${(v / 100).toFixed(2)}%`;
         if (key === "weightedDelinquencyRate") return `${v.toFixed(2)}%`;
-        if (key === "totalMembers") return v.toLocaleString();
+        if (key === "totalMembers") return (v ?? 0).toLocaleString();
         return v.toFixed(2);
       };
       const formattedValues = values.map(formatTrendValue).join(", ");
@@ -597,7 +597,7 @@ export async function runQuarterlyPipeline(): Promise<QuarterlyData> {
       console.log(
         `  [computed] ${statewide.totalCUs} CUs, ` +
           `$${(statewide.totalAssets / 1e9).toFixed(1)}B assets, ` +
-          `${statewide.totalMembers.toLocaleString()} members`
+          `${(statewide.totalMembers ?? 0).toLocaleString()} members`
       );
     } catch (err) {
       console.error(

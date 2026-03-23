@@ -148,7 +148,7 @@ function verifyDataCollection(dailyData: DailyData | null): VerificationLayer {
       checks.push({
         check: "Zillow home values in plausible Michigan range ($80K-$800K)",
         passed: rangeOk,
-        detail: `Range: $${minVal.toLocaleString()}-$${maxVal.toLocaleString()} across ${zillow.zhvi.length} MSAs`,
+        detail: `Range: $${(minVal ?? 0).toLocaleString()}-$${(maxVal ?? 0).toLocaleString()} across ${zillow.zhvi.length} MSAs`,
         minValue: minVal,
         maxValue: maxVal,
       });

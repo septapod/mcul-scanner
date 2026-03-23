@@ -13,9 +13,9 @@ function formatAnomalyValue(value: number, metric: string): string {
     return `${value.toFixed(2)}%`;
   }
   if (metric === "totalMembers" || metric.startsWith("trend_totalMembers")) {
-    return value.toLocaleString();
+    return (value ?? 0).toLocaleString();
   }
-  return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  return (value ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
 interface AnomalyFlagsProps {

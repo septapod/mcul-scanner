@@ -314,7 +314,7 @@ function DashboardView({
                       series.latestValue != null
                         ? series.unit === "percent" || series.unit === "Percent" || series.unit === "%"
                           ? `${series.latestValue.toFixed(2)}%`
-                          : series.latestValue.toLocaleString()
+                          : (series.latestValue ?? 0).toLocaleString()
                         : "N/A"
                     }
                     change={

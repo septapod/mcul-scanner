@@ -39,11 +39,11 @@ function formatAnomalyValue(metric: string, value: number): string {
   const m = metric.toLowerCase();
   if (m.includes("delinquency")) return `${value.toFixed(2)}%`;
   if (m.includes("net_worth") || m.includes("networth")) return `${(value / 100).toFixed(2)}%`;
-  if (m.includes("total_cus") || m.includes("cu_count") || m.includes("totalcus")) return value.toLocaleString();
+  if (m.includes("total_cus") || m.includes("cu_count") || m.includes("totalcus")) return (value ?? 0).toLocaleString();
   if (m.includes("members")) return `${(value / 1_000_000).toFixed(1)}M`;
   if (value > 1_000_000_000) return `$${(value / 1e9).toFixed(1)}B`;
   if (value > 1_000_000) return `$${(value / 1e6).toFixed(1)}M`;
-  return value.toLocaleString();
+  return (value ?? 0).toLocaleString();
 }
 
 // ── Michigan Map Data ───────────────────────────────────────────────────────
@@ -468,7 +468,7 @@ export function PresentationView({ data }: PresentationViewProps) {
 
         <div className="flex items-center gap-10 mt-2">
           {[
-            { value: totalCUs.toLocaleString(), label: "institutions" },
+            { value: (totalCUs ?? 0).toLocaleString(), label: "institutions" },
             { value: formatBillions(totalAssets), label: "assets" },
             { value: formatMembers(totalMembers), label: "members" },
           ].map((item, i) => (
@@ -986,7 +986,7 @@ export function PresentationView({ data }: PresentationViewProps) {
             transitionDelay: "0.5s",
           }}
         >
-          Cross-referenced against {totalCUs.toLocaleString()} credit unions
+          Cross-referenced against {(totalCUs ?? 0).toLocaleString()} credit unions
         </div>
       </Beat>
 
@@ -1095,7 +1095,7 @@ export function PresentationView({ data }: PresentationViewProps) {
               transitionDelay: "0.45s",
             }}
           >
-            {totalCUs.toLocaleString()} institutions. {quartersAnalyzed} quarters. {dataSourceCount > 0 ? dataSourceCount : 4} data sources.
+            {(totalCUs ?? 0).toLocaleString()} institutions. {quartersAnalyzed} quarters. {dataSourceCount > 0 ? dataSourceCount : 4} data sources.
           </div>
 
           <div

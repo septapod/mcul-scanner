@@ -252,7 +252,7 @@ function crossrefFredNcua(
       findings.push({
         type: "fred_x_ncua",
         severity,
-        headline: `CPI running at ${cpiYoy > 0 ? "+" : ""}${cpiYoy.toFixed(1)}% YoY. Inflation pressure on ${totalMembers.toLocaleString()} Michigan CU members.`,
+        headline: `CPI running at ${cpiYoy > 0 ? "+" : ""}${cpiYoy.toFixed(1)}% YoY. Inflation pressure on ${(totalMembers ?? 0).toLocaleString()} Michigan CU members.`,
         detail: `Consumer prices up ${cpiYoy.toFixed(1)}% year-over-year (CPI index: ${cpi.latestValue.toFixed(1)}). Elevated inflation erodes member purchasing power, potentially increasing demand for consumer lending while pressuring deposit growth.`,
         indicators: {
           cpiIndex: cpi.latestValue,
@@ -437,7 +437,7 @@ function crossrefZillowNcua(
         type: "zillow_x_ncua",
         severity: "WARNING",
         headline: `${msaName}: Home values weakening (MoM: ${momPct > 0 ? "+" : ""}${momPct.toFixed(1)}%, YoY: ${yoyPct > 0 ? "+" : ""}${yoyPct.toFixed(1)}%), ${cuCount} CUs with $${(cuLoans / 1e9).toFixed(1)}B in loans exposed.`,
-        detail: `Median home value in ${msaName} is $${latestVal.toLocaleString()}. ${cuCount} credit unions headquartered in this MSA hold $${(cuLoans / 1e9).toFixed(1)}B in total loans. Declining home values increase collateral risk on mortgage and HELOC portfolios.`,
+        detail: `Median home value in ${msaName} is $${(latestVal ?? 0).toLocaleString()}. ${cuCount} credit unions headquartered in this MSA hold $${(cuLoans / 1e9).toFixed(1)}B in total loans. Declining home values increase collateral risk on mortgage and HELOC portfolios.`,
         indicators: {
           msa: msaName,
           homeValue: latestVal,
@@ -454,7 +454,7 @@ function crossrefZillowNcua(
         type: "zillow_x_ncua",
         severity: "OPPORTUNITY",
         headline: `${msaName}: Home values appreciating (MoM: +${momPct.toFixed(1)}%, YoY: +${yoyPct.toFixed(1)}%), positive for ${cuCount} CU collateral positions.`,
-        detail: `Median home value in ${msaName} is $${latestVal.toLocaleString()}. Appreciating values strengthen collateral on $${(cuLoans / 1e9).toFixed(1)}B in CU loans.`,
+        detail: `Median home value in ${msaName} is $${(latestVal ?? 0).toLocaleString()}. Appreciating values strengthen collateral on $${(cuLoans / 1e9).toFixed(1)}B in CU loans.`,
         indicators: {
           msa: msaName,
           homeValue: latestVal,
@@ -477,7 +477,7 @@ function crossrefZillowNcua(
         type: "zillow_x_ncua",
         severity: "INFO",
         headline: `${r.region}: Housing inventory ${direction} (${momPct > 0 ? "+" : ""}${momPct.toFixed(1)}% MoM). Monitor for market cooling/heating signals.`,
-        detail: `Current inventory: ${r.latestValue.toLocaleString()} listings. Significant inventory changes are leading indicators for home values.`,
+        detail: `Current inventory: ${(r.latestValue ?? 0).toLocaleString()} listings. Significant inventory changes are leading indicators for home values.`,
         indicators: {
           msa: r.region,
           inventory: r.latestValue,

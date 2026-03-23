@@ -27,7 +27,7 @@ export function StatewideOverview({ quarters }: StatewideOverviewProps) {
   const tiles = [
     {
       label: "Total CUs",
-      value: s.totalCUs.toLocaleString(),
+      value: (s.totalCUs ?? 0).toLocaleString(),
       ...computeChange(s.totalCUs, p?.totalCUs),
     },
     {

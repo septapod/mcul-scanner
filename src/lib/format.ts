@@ -32,7 +32,7 @@ export function fmtMembers(val: number): string {
     const k = abs / 1_000;
     return `${k >= 100 ? k.toFixed(0) : k >= 10 ? k.toFixed(1) : k.toFixed(2)}K`;
   }
-  return abs.toLocaleString();
+  return (abs ?? 0).toLocaleString();
 }
 
 /** Format percentage: 12.78% */

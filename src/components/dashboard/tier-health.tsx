@@ -116,7 +116,7 @@ export function TierHealth({ quarters, analysis }: TierHealthProps) {
             <div className="space-y-2">
               <MetricRow
                 label="CU Count"
-                value={tier.cuCount.toLocaleString()}
+                value={(tier.cuCount ?? 0).toLocaleString()}
                 change={cuChange?.text}
                 changeType={cuChange?.type}
               />
