@@ -1,7 +1,7 @@
 # MCUL Scanner - Project Status
 
-**Updated:** 2026-03-22
-**Status:** Deployed with localStorage persistence and accurate Michigan SVG.
+**Updated:** 2026-03-23
+**Status:** Deployed with WCAG AA contrast, fixed data formatting, all dashboard sections rendering.
 **URL:** https://mi.dxn.is
 **Repo:** local only
 
@@ -55,4 +55,10 @@
 - [x] Section divider CSS with dots
 - [x] Vercel deployment + domain setup (mi.dxn.is)
 - [x] Anthropic API key made truly optional (daily scan works without it)
+- [x] WCAG AA light mode contrast: gold, coral, accent, muted, success, warning, info all pass 4.5:1
+- [x] Net worth ratio displays as percentages (converted from basis points) in statewide, tier health, anomaly cards
+- [x] Delinquency trend values formatted as percentages in anomaly detail text
+- [x] All dashboard sections render in page.tsx: statewide overview, tier health, anomaly flags, emerging trends, risk concentrations, market pulse
+- [x] Hero text spacing fixed (gap between metric groups)
+- [x] Narrative system prompt updated for plain-English readability
 - [ ] Add Vercel Blob for server-side persistence (when BLOB_READ_WRITE_TOKEN configured)

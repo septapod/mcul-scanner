@@ -22,7 +22,7 @@ export function StatTile({
 
   return (
     <div className="glass-card px-4 py-3">
-      <div className="text-[10px] font-mono text-muted uppercase tracking-wider mb-1">
+      <div className="text-[13px] font-mono text-muted uppercase tracking-wider mb-1">
         {label}
       </div>
       <div className="flex items-baseline gap-2">
@@ -30,18 +30,12 @@ export function StatTile({
           {value}
         </span>
         {change && (
-          <span className={`text-xs font-mono ${changeColor}`}>{change}</span>
+          <span className={`text-sm font-mono ${changeColor}`}>{change}</span>
         )}
       </div>
       {subtitle && (
-        <div className="text-[10px] font-mono text-muted mt-1">{subtitle}</div>
+        <div className="text-[13px] font-mono text-muted mt-1">{subtitle}</div>
       )}
-      {/* Mini sparkline decoration */}
-      <div className="stat-sparkline">
-        {[40, 55, 45, 60, 50, 65, 70, 60].map((h, i) => (
-          <span key={i} style={{ height: `${h}%` }} />
-        ))}
-      </div>
     </div>
   );
 }

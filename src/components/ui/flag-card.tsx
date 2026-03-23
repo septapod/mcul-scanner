@@ -64,18 +64,18 @@ export function FlagCard({
       <div className="flex items-center gap-2 flex-wrap">
         <SeverityBadge severity={normalized} />
         {category && (
-          <span className="text-[10px] font-mono text-muted uppercase tracking-wider px-1.5 py-0.5 rounded bg-surface-elevated border border-border/50">
+          <span className="text-[13px] font-mono text-muted uppercase tracking-wider px-1.5 py-0.5 rounded bg-surface-elevated border border-border/50">
             {category}
           </span>
         )}
       </div>
 
-      <h3 className="text-sm font-[family-name:var(--font-display)] font-medium text-heading leading-snug">
+      <h3 className="text-base font-[family-name:var(--font-display)] font-medium text-heading leading-snug">
         {headline}
       </h3>
 
       {narrative && (
-        <p className="text-xs text-foreground/80 leading-relaxed">
+        <p className="text-sm text-foreground/80 leading-relaxed">
           {narrative}
         </p>
       )}
@@ -85,7 +85,7 @@ export function FlagCard({
           {watchItems.map((item, i) => (
             <li
               key={i}
-              className="text-[11px] text-muted flex items-start gap-1.5"
+              className="text-[14px] text-muted flex items-start gap-1.5"
             >
               <span className="text-accent-light mt-0.5 flex-shrink-0">
                 &bull;

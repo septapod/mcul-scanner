@@ -60,7 +60,7 @@ export function AnomalyFlags({ anomalies, narratives }: AnomalyFlagsProps) {
             {/* Header row */}
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <SeverityBadge severity={anomaly.severity} />
-              <span className="text-[10px] font-mono text-muted uppercase tracking-wider">
+              <span className="text-[13px] font-mono text-muted uppercase tracking-wider">
                 {anomaly.category}
               </span>
             </div>
@@ -71,12 +71,12 @@ export function AnomalyFlags({ anomalies, narratives }: AnomalyFlagsProps) {
             </h3>
 
             {/* Detail */}
-            <p className="text-[13px] text-muted leading-relaxed mb-2">
+            <p className="text-[15px] text-muted leading-relaxed mb-2">
               {anomaly.detail}
             </p>
 
             {/* Metric values */}
-            <div className="flex flex-wrap items-center gap-4 text-[12px] font-mono">
+            <div className="flex flex-wrap items-center gap-4 text-[14px] font-mono">
               <span className="text-muted">
                 Current:{" "}
                 <span className="text-heading tabular-nums">
@@ -97,7 +97,7 @@ export function AnomalyFlags({ anomalies, narratives }: AnomalyFlagsProps) {
             {/* AI narrative */}
             {narrative?.narrative && (
               <div className="mt-3 pt-3 border-t border-border/30">
-                <p className="text-[13px] text-foreground leading-relaxed">
+                <p className="text-[15px] text-foreground leading-relaxed">
                   {narrative.narrative}
                 </p>
               </div>
@@ -106,14 +106,14 @@ export function AnomalyFlags({ anomalies, narratives }: AnomalyFlagsProps) {
             {/* Watch items */}
             {narrative?.watchItems && narrative.watchItems.length > 0 && (
               <div className="mt-2">
-                <span className="text-[10px] font-mono text-accent-light uppercase tracking-wider">
+                <span className="text-[13px] font-mono text-accent-light uppercase tracking-wider">
                   Watch Items
                 </span>
                 <ul className="mt-1 space-y-1">
                   {narrative.watchItems.map((item, j) => (
                     <li
                       key={j}
-                      className="text-[13px] text-muted flex items-start gap-2"
+                      className="text-[15px] text-muted flex items-start gap-2"
                     >
                       <span className="text-accent-light mt-0.5 flex-shrink-0">
                         &bull;

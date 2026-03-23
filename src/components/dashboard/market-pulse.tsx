@@ -84,7 +84,7 @@ function CFPBSection({ dailyData }: { dailyData: DailyData }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Top Companies */}
         <div>
-          <div className="text-[10px] font-mono text-accent-light uppercase tracking-wider mb-2">
+          <div className="text-[15px] font-mono text-accent-light uppercase tracking-wider mb-2">
             Top Companies by Complaints
           </div>
           <div className="space-y-1.5">
@@ -93,10 +93,10 @@ function CFPBSection({ dailyData }: { dailyData: DailyData }) {
                 key={company.name}
                 className="flex items-center justify-between py-1 px-2 rounded bg-surface-elevated/50"
               >
-                <span className="text-[13px] text-foreground truncate mr-2">
+                <span className="text-[15px] text-foreground truncate mr-2">
                   {company.name}
                 </span>
-                <span className="text-[13px] font-mono text-heading tabular-nums flex-shrink-0">
+                <span className="text-[15px] font-mono text-heading tabular-nums flex-shrink-0">
                   {company.count}
                 </span>
               </div>
@@ -106,7 +106,7 @@ function CFPBSection({ dailyData }: { dailyData: DailyData }) {
 
         {/* Top Issues */}
         <div>
-          <div className="text-[10px] font-mono text-accent-light uppercase tracking-wider mb-2">
+          <div className="text-[15px] font-mono text-accent-light uppercase tracking-wider mb-2">
             Top Issues
           </div>
           <div className="space-y-1.5">
@@ -115,10 +115,10 @@ function CFPBSection({ dailyData }: { dailyData: DailyData }) {
                 key={issue}
                 className="flex items-center justify-between py-1 px-2 rounded bg-surface-elevated/50"
               >
-                <span className="text-[13px] text-foreground truncate mr-2">
+                <span className="text-[15px] text-foreground truncate mr-2">
                   {issue}
                 </span>
-                <span className="text-[13px] font-mono text-heading tabular-nums flex-shrink-0">
+                <span className="text-[15px] font-mono text-heading tabular-nums flex-shrink-0">
                   {count}
                 </span>
               </div>
@@ -168,11 +168,11 @@ function ZillowSection({ dailyData }: { dailyData: DailyData }) {
             className={`glass-card p-3 ${isFlagged ? "border-l-2 border-l-warning" : ""}`}
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[13px] font-[family-name:var(--font-display)] font-medium text-heading truncate">
+              <span className="text-[15px] font-[family-name:var(--font-display)] font-medium text-heading truncate">
                 {msa.region}
               </span>
               {isFlagged && (
-                <span className="text-[9px] font-mono text-warning uppercase tracking-wider flex-shrink-0 ml-1">
+                <span className="text-[13px] font-mono text-warning uppercase tracking-wider flex-shrink-0 ml-1">
                   Flagged
                 </span>
               )}
@@ -183,7 +183,7 @@ function ZillowSection({ dailyData }: { dailyData: DailyData }) {
               </span>
               {momText && (
                 <span
-                  className={`text-[11px] font-mono ${
+                  className={`text-[14px] font-mono ${
                     momType === "positive"
                       ? "text-success"
                       : momType === "negative"
@@ -217,7 +217,7 @@ export function MarketPulse({ dailyData, crossref }: MarketPulseProps) {
     <div className="space-y-8">
       {/* FRED */}
       <div>
-        <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent-light mb-3">
+        <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-3">
           Economic Indicators (FRED)
         </div>
         <FREDIndicators series={dailyData.sources.fred} />
@@ -225,7 +225,7 @@ export function MarketPulse({ dailyData, crossref }: MarketPulseProps) {
 
       {/* CFPB */}
       <div>
-        <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent-light mb-3">
+        <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-3">
           Consumer Complaints (CFPB)
         </div>
         <CFPBSection dailyData={dailyData} />
@@ -233,7 +233,7 @@ export function MarketPulse({ dailyData, crossref }: MarketPulseProps) {
 
       {/* Zillow */}
       <div>
-        <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent-light mb-3">
+        <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-3">
           Housing Market (Zillow)
         </div>
         <ZillowSection dailyData={dailyData} />
@@ -242,24 +242,24 @@ export function MarketPulse({ dailyData, crossref }: MarketPulseProps) {
       {/* Cross-reference findings */}
       {crossref && crossref.findings.length > 0 && (
         <div>
-          <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent-light mb-3">
+          <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-3">
             Cross-Reference Findings
           </div>
           <div className="space-y-2">
             {crossref.findings.map((finding, i) => (
               <div key={i} className="glass-card p-3">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-mono text-muted uppercase tracking-wider">
+                  <span className="text-[13px] font-mono text-muted uppercase tracking-wider">
                     {finding.type}
                   </span>
-                  <span className="text-[10px] font-mono text-accent-light uppercase tracking-wider">
+                  <span className="text-[15px] font-mono text-accent-light uppercase tracking-wider">
                     {finding.severity}
                   </span>
                 </div>
                 <h4 className="text-[15px] font-[family-name:var(--font-display)] font-medium text-heading mb-1">
                   {finding.headline}
                 </h4>
-                <p className="text-[13px] text-muted leading-relaxed">
+                <p className="text-[15px] text-muted leading-relaxed">
                   {finding.detail}
                 </p>
               </div>

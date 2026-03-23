@@ -12,7 +12,7 @@ const SEVERITY_STYLES: Record<SeverityBadgeProps["severity"], string> = {
 export function SeverityBadge({ severity }: SeverityBadgeProps) {
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider border ${SEVERITY_STYLES[severity]}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[13px] font-mono uppercase tracking-wider border ${SEVERITY_STYLES[severity]}`}
     >
       {severity}
     </span>

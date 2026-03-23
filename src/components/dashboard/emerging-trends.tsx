@@ -48,27 +48,27 @@ export function EmergingTrends({ trends }: EmergingTrendsProps) {
             <h3 className="text-[15px] font-[family-name:var(--font-display)] font-medium text-heading">
               {trend.trendName}
             </h3>
-            <span className="text-[10px] font-mono text-muted uppercase tracking-wider ml-auto">
+            <span className="text-[13px] font-mono text-muted uppercase tracking-wider ml-auto">
               {DIRECTION_LABELS[trend.direction] ?? trend.direction}
             </span>
           </div>
 
           {/* Evidence */}
           <div className="mb-2">
-            <span className="text-[10px] font-mono text-accent-light uppercase tracking-wider">
+            <span className="text-[13px] font-mono text-accent-light uppercase tracking-wider">
               Evidence
             </span>
-            <p className="text-[13px] text-muted leading-relaxed mt-0.5">
+            <p className="text-[15px] text-muted leading-relaxed mt-0.5">
               {trend.evidence}
             </p>
           </div>
 
           {/* Implication */}
           <div>
-            <span className="text-[10px] font-mono text-accent-light uppercase tracking-wider">
+            <span className="text-[13px] font-mono text-accent-light uppercase tracking-wider">
               Implication
             </span>
-            <p className="text-[13px] text-foreground leading-relaxed mt-0.5">
+            <p className="text-[15px] text-foreground leading-relaxed mt-0.5">
               {trend.implication}
             </p>
           </div>

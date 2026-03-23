@@ -40,11 +40,11 @@ function MetricRow({
 
   return (
     <div className="flex items-baseline justify-between">
-      <span className="text-[12px] text-muted">{label}</span>
+      <span className="text-[14px] text-muted">{label}</span>
       <div className="flex items-baseline gap-1.5">
         <span className="text-[15px] font-mono text-heading tabular-nums">{value}</span>
         {change && (
-          <span className={`text-[11px] font-mono ${changeColor}`}>{change}</span>
+          <span className={`text-[14px] font-mono ${changeColor}`}>{change}</span>
         )}
       </div>
     </div>
@@ -105,7 +105,7 @@ export function TierHealth({ quarters, analysis }: TierHealthProps) {
                   className={`w-2 h-2 rounded-full ${STATUS_COLORS[status]}`}
                 />
                 <span
-                  className={`text-[10px] font-mono uppercase tracking-wider ${STATUS_TEXT_COLORS[status]}`}
+                  className={`text-[13px] font-mono uppercase tracking-wider ${STATUS_TEXT_COLORS[status]}`}
                 >
                   {status}
                 </span>
@@ -148,7 +148,7 @@ export function TierHealth({ quarters, analysis }: TierHealthProps) {
 
             {/* Narrative */}
             {tierAnalysis?.summary && (
-              <p className="mt-3 pt-3 border-t border-border/30 text-[13px] text-muted leading-relaxed">
+              <p className="mt-3 pt-3 border-t border-border/30 text-[15px] text-muted leading-relaxed">
                 {tierAnalysis.summary}
               </p>
             )}
@@ -159,7 +159,7 @@ export function TierHealth({ quarters, analysis }: TierHealthProps) {
       {/* Synthesis card */}
       {analysis?.tierHealthSummary?.synthesis && (
         <div className="glass-card p-4 md:col-span-2 xl:col-span-3">
-          <div className="text-[10px] font-mono text-accent-light uppercase tracking-wider mb-2">
+          <div className="text-[13px] font-mono text-accent-light uppercase tracking-wider mb-2">
             Synthesis
           </div>
           <p className="text-[15px] text-foreground leading-relaxed">

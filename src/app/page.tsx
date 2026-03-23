@@ -17,6 +17,7 @@ import { AnomalyFlags } from "@/components/dashboard/anomaly-flags";
 import { EmergingTrends } from "@/components/dashboard/emerging-trends";
 import { RiskConcentrations } from "@/components/dashboard/risk-concentrations";
 import { MarketPulse } from "@/components/dashboard/market-pulse";
+import { PresentationView } from "@/components/presentation/presentation-view";
 import type {
   QuarterlyData,
   DailyData,
@@ -146,14 +147,14 @@ function DashboardView({
 
         {/* Data source pills */}
         <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
-          <span className="text-xs text-muted mr-1">Powered by</span>
+          <span className="text-sm text-muted mr-1">Powered by</span>
           {DATA_SOURCES.map((source) => (
             <span key={source.name} className="data-source-pill">
               <span
                 className="inline-block w-1.5 h-1.5 rounded-full"
                 style={{ backgroundColor: source.color }}
               />
-              <span className="text-[11px] font-mono text-muted">
+              <span className="text-[14px] font-mono text-muted">
                 {source.name}
               </span>
             </span>
@@ -165,8 +166,8 @@ function DashboardView({
       <div className="glass-card px-4 sm:px-6 py-3 mb-8 sm:mb-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm">
           <div className="flex items-center gap-2">
-            <span className="text-muted font-mono text-xs">Last refresh</span>
-            <span className="text-heading font-mono text-xs">
+            <span className="text-muted font-mono text-sm">Last refresh</span>
+            <span className="text-heading font-mono text-sm">
               {quarterly?.generatedAt
                 ? new Date(quarterly.generatedAt).toLocaleString("en-US", {
                     year: "numeric",
@@ -187,7 +188,7 @@ function DashboardView({
           )}
           <div className="flex items-center gap-2">
             <span className="status-dot-live" />
-            <span className="text-xs text-success font-mono">
+            <span className="text-sm text-success font-mono">
               {quarterly ? "Fresh" : "Awaiting scan"}
             </span>
           </div>
@@ -222,7 +223,7 @@ function DashboardView({
             </p>
           </div>
           <div className="border-t border-border/30 pt-5 mt-5">
-            <p className="text-muted font-mono text-xs">
+            <p className="text-muted font-mono text-sm">
               The first scan downloads 4 quarters of regulatory data across ~171 institutions. Takes 2-3 minutes.
             </p>
           </div>
@@ -232,7 +233,7 @@ function DashboardView({
           {/* 1. Statewide Overview */}
           {quarterly?.quarters && quarterly.quarters.length > 0 && (
             <section className="glass-card p-5 sm:p-6">
-              <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent-light mb-4">
+              <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
                 Statewide Overview
               </div>
               {analysis?.sections?.statewideOverview && (
@@ -247,7 +248,7 @@ function DashboardView({
           {/* 2. Tier Health */}
           {quarterly?.quarters && quarterly.quarters.length > 0 && (
             <section className="glass-card p-5 sm:p-6">
-              <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent-light mb-4">
+              <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
                 Tier Health
               </div>
               <TierHealth
@@ -260,7 +261,7 @@ function DashboardView({
           {/* 3. Anomaly Flags */}
           {quarterly?.anomalies && quarterly.anomalies.length > 0 && (
             <section className="glass-card p-5 sm:p-6">
-              <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent-light mb-4">
+              <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
                 Flags &amp; Anomalies
               </div>
               <AnomalyFlags
@@ -272,7 +273,7 @@ function DashboardView({
 
           {/* 4. Emerging Trends */}
           <section className="glass-card p-5 sm:p-6">
-            <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent-light mb-4">
+            <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
               Emerging Trends
             </div>
             <EmergingTrends
@@ -282,7 +283,7 @@ function DashboardView({
 
           {/* 5. Risk Concentrations */}
           <section className="glass-card p-5 sm:p-6">
-            <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent-light mb-4">
+            <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
               Risk Concentrations
             </div>
             <RiskConcentrations
@@ -292,7 +293,7 @@ function DashboardView({
 
           {/* 6. Market Pulse */}
           <section className="glass-card p-5 sm:p-6">
-            <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent-light mb-4">
+            <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
               Market Pulse
             </div>
             <MarketPulse
@@ -334,31 +335,6 @@ function DashboardView({
           )}
         </div>
       )}
-    </main>
-  );
-}
-
-// ── Presentation View (placeholder) ─────────────────────────────────────────
-
-function PresentationView({ data }: { data: ScannerData }) {
-  const latestQuarter =
-    data.quarterly?.quarters?.[data.quarterly.quarters.length - 1];
-
-  return (
-    <main className="min-h-screen flex items-center justify-center p-8">
-      <div className="max-w-4xl w-full text-center space-y-8">
-        <h1 className="hero-metric font-[family-name:var(--font-display)]">
-          <span className="hero-gold">
-            {latestQuarter?.statewide?.totalCUs ?? "171"}
-          </span>{" "}
-          <span className="text-heading text-2xl font-normal">
-            Michigan Credit Unions
-          </span>
-        </h1>
-        <p className="text-muted font-mono text-sm">
-          Presentation mode. Full view coming soon.
-        </p>
-      </div>
     </main>
   );
 }
@@ -538,7 +514,11 @@ function HomeInner() {
     return (
       <>
         <div className="dxn-gradient-line" />
-        <PresentationView data={data} />
+        <PresentationView data={{
+          quarterlyData: data.quarterly,
+          dailyData: data.daily,
+          analysis: data.analysis,
+        }} />
         <ModeToggle />
       </>
     );
@@ -566,12 +546,12 @@ function HomeInner() {
           <div className="flex items-center gap-3">
             {/* DX Monogram */}
             <div className="dxn-monogram">
-              <span className="text-xs font-bold text-heading tracking-tight">
+              <span className="text-sm font-bold text-heading tracking-tight">
                 DX
               </span>
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-mono text-muted uppercase tracking-[0.2em] leading-none">
+              <span className="text-[13px] font-mono text-muted uppercase tracking-[0.2em] leading-none">
                 Dixon Strategic Labs
               </span>
               <span className="text-sm font-medium text-heading leading-tight font-[family-name:var(--font-display)]">
@@ -594,13 +574,13 @@ function HomeInner() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="rounded-xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
             <div className="px-4 py-2 flex items-center justify-between" style={{ borderBottom: "1px solid var(--color-border)" }}>
-              <span className="font-mono text-xs uppercase tracking-widest" style={{ color: "var(--color-accent-light)" }}>
+              <span className="font-mono text-sm uppercase tracking-widest" style={{ color: "var(--color-accent-light)" }}>
                 {refreshing ? "Scanning..." : "Scan Log"}
               </span>
               {!refreshing && (
                 <button
                   onClick={() => setReasoningLog([])}
-                  className="text-xs font-mono hover:opacity-70 transition-opacity"
+                  className="text-sm font-mono hover:opacity-70 transition-opacity"
                   style={{ color: "var(--color-muted)" }}
                 >
                   Clear
@@ -646,7 +626,7 @@ function HomeInner() {
 
       {/* Footer */}
       <footer className="border-t border-border/30 mt-auto pb-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-muted">
           <span className="font-mono">Dixon Strategic Labs, 2026</span>
           <div className="flex items-center gap-4">
             <a

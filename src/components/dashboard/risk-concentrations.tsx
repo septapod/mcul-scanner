@@ -32,7 +32,7 @@ export function RiskConcentrations({ risks }: RiskConcentrationsProps) {
             {/* Header */}
             <div className="flex items-center gap-2 mb-2">
               <span className={`w-2 h-2 rounded-full ${styles.dot}`} />
-              <span className={`text-[10px] font-mono uppercase tracking-wider ${styles.text}`}>
+              <span className={`text-[13px] font-mono uppercase tracking-wider ${styles.text}`}>
                 {risk.severity}
               </span>
             </div>
@@ -43,20 +43,20 @@ export function RiskConcentrations({ risks }: RiskConcentrationsProps) {
 
             {/* Evidence */}
             <div className="mb-2">
-              <span className="text-[10px] font-mono text-accent-light uppercase tracking-wider">
+              <span className="text-[13px] font-mono text-accent-light uppercase tracking-wider">
                 Evidence
               </span>
-              <p className="text-[13px] text-muted leading-relaxed mt-0.5">
+              <p className="text-[15px] text-muted leading-relaxed mt-0.5">
                 {risk.evidence}
               </p>
             </div>
 
             {/* Implication */}
             <div>
-              <span className="text-[10px] font-mono text-accent-light uppercase tracking-wider">
+              <span className="text-[13px] font-mono text-accent-light uppercase tracking-wider">
                 Implication
               </span>
-              <p className="text-[13px] text-foreground leading-relaxed mt-0.5">
+              <p className="text-[15px] text-foreground leading-relaxed mt-0.5">
                 {risk.implication}
               </p>
             </div>
