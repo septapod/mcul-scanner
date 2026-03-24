@@ -305,6 +305,8 @@ function DashboardView({
           {daily?.sources?.fred && (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {Object.entries(daily.sources.fred)
+                .filter(([key]) => !key.startsWith("_"))
+                .filter(([, series]) => series && typeof series === "object" && "latestValue" in series)
                 .slice(0, 4)
                 .map(([key, series]) => (
                   <StatTile
