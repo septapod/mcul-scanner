@@ -272,24 +272,28 @@ function DashboardView({
           )}
 
           {/* 4. Emerging Trends */}
-          <section className="glass-card p-5 sm:p-6">
-            <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
-              Emerging Trends
-            </div>
-            <EmergingTrends
-              trends={analysis?.sections.emergingTrends}
-            />
-          </section>
+          {analysis?.sections?.emergingTrends && analysis.sections.emergingTrends.length > 0 && (
+            <section className="glass-card p-5 sm:p-6">
+              <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
+                Emerging Trends
+              </div>
+              <EmergingTrends
+                trends={analysis.sections.emergingTrends}
+              />
+            </section>
+          )}
 
           {/* 5. Risk Concentrations */}
-          <section className="glass-card p-5 sm:p-6">
-            <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
-              Risk Concentrations
-            </div>
-            <RiskConcentrations
-              risks={analysis?.sections.riskConcentrations}
-            />
-          </section>
+          {analysis?.sections?.riskConcentrations && analysis.sections.riskConcentrations.length > 0 && (
+            <section className="glass-card p-5 sm:p-6">
+              <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
+                Risk Concentrations
+              </div>
+              <RiskConcentrations
+                risks={analysis.sections.riskConcentrations}
+              />
+            </section>
+          )}
 
           {/* 6. Market Pulse */}
           <section className="glass-card p-5 sm:p-6">
@@ -377,8 +381,22 @@ function HomeInner() {
       if (cachedQ) {
         try {
           const parsed = JSON.parse(cachedQ);
+          // Auto-clear cache older than 24 hours
+          const cacheAge = parsed.quarterly?.generatedAt
+            ? Date.now() - new Date(parsed.quarterly.generatedAt).getTime()
+            : Infinity;
+          if (cacheAge > 24 * 60 * 60 * 1000) {
+            localStorage.removeItem("mcul-quarterly");
+            cachedQ = null;
+          }
           // Validate the data has the expected shape before using it
-          if (parsed && typeof parsed === "object" && (parsed.quarterly || parsed.quartersAnalyzed)) {
+          if (cachedQ && parsed && typeof parsed === "object" && (parsed.quarterly || parsed.quartersAnalyzed)) {
+            // Reject placeholder analysis from cache
+            if (parsed.analysis?.model === "none" ||
+                parsed.analysis?.sections?.summaryInsight?.includes("pending") ||
+                parsed.analysis?.sections?.summaryInsight?.includes("API key")) {
+              parsed.analysis = null;
+            }
             setData((prev) => ({
               ...prev,
               quarterly: parsed.quarterly || null,
@@ -483,7 +501,14 @@ function HomeInner() {
           analysis: qData.analysis,
           verification: qData.verification,
         }));
-        localStorage.setItem("mcul-quarterly", JSON.stringify(qData));
+        // Don't cache placeholder analysis
+        const cacheData = { ...qData };
+        if (cacheData.analysis?.model === "none" ||
+            cacheData.analysis?.sections?.statewideOverview?.includes("pending") ||
+            cacheData.analysis?.sections?.statewideOverview?.includes("API key")) {
+          cacheData.analysis = null;
+        }
+        localStorage.setItem("mcul-quarterly", JSON.stringify(cacheData));
       } else {
         addLog("Quarterly scan returned no data. Check server logs.");
       }
