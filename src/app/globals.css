@@ -177,13 +177,11 @@
   border-radius: 999px;
   border: 1px solid var(--color-border);
   background: rgba(255, 255, 255, 0.02);
-  transition: all 0.2s ease;
+  cursor: default;
+  user-select: none;
 }
 
-.data-source-pill:hover {
-  border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
-  background: color-mix(in srgb, var(--color-accent) 5%, transparent);
-}
+/* No hover effect - these are informational, not interactive */
 
 .light .hero-gold {
   text-shadow: none;
@@ -193,9 +191,7 @@
   background: rgba(0, 0, 0, 0.02);
 }
 
-.light .data-source-pill:hover {
-  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
-}
+/* No hover effect in light mode either */
 
 /* Glass card with gradient border */
 .glass-card {

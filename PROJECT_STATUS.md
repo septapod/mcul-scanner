@@ -1,7 +1,7 @@
 # MCUL Scanner - Project Status
 
-**Updated:** 2026-03-23
-**Status:** Shared ProcessedData hook consumed by both dashboard and presentation views, deployed to prod.
+**Updated:** 2026-03-24
+**Status:** Three presentation mode bugs fixed (empty state, click handler, mobile stats), deployed to prod.
 **URL:** https://mi.dxn.is
 **Repo:** local only
 
@@ -78,5 +78,8 @@
 - [x] page.tsx refactored: DashboardView and PresentationView both consume ProcessedData from the hook. Removed duplicated computeTrendsFromData/computeRisksFromData. Dashboard sections use processed fields directly for overview metrics, anomalies, trends, risks, FRED data.
 - [x] presentation-view.tsx refactored: accepts ProcessedData instead of raw data shape. Removed all local format helpers and data extraction block. Uses processed fields for hero metrics, tiers, sparkline, FRED, narrative.
 - [x] Presentation Beat 6 synced with dashboard data: shows AI summaryInsight when isAIGenerated, appends top trend/risk pills below narrative in both AI and fallback branches.
+- [x] Presentation mode empty state: shows fallback UI with "Go to Dashboard" button when no cached data
+- [x] Click handler excludes buttons/links/role=button (no longer eats interactive element clicks)
+- [x] Beat 1 stats responsive: flex-col on mobile, smaller text (22px/32px), tighter gaps
 - [ ] Add Vercel Blob for server-side persistence (when BLOB_READ_WRITE_TOKEN configured)
 - [ ] Add real data-driven sparklines to stat tiles

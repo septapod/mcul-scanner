@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Settings } from "lucide-react";
+// Settings icon removed (was non-functional)
 
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ModeToggle } from "@/components/ui/mode-toggle";
@@ -471,10 +471,31 @@ function HomeInner() {
     try {
       // Step 1: Quarterly NCUA scan
       addLog("Initiating quarterly NCUA pipeline...");
-      addLog("Downloading Q1-Q4 2025 call report data from ncua.gov...");
+      addLog("Downloading Q1-Q4 2025 call report data from ncua.gov (4 quarters, ~32MB)...");
+      addLog("This typically takes 1-2 minutes. Please wait...");
       setRefreshProgress("Downloading NCUA data...");
-      const qRes = await fetch("/api/scan/quarterly", { method: "POST" });
-      const qData = qRes.ok ? await qRes.json() : null;
+
+      // Show elapsed time while the long fetch runs
+      const startTime = Date.now();
+      const timerInterval = setInterval(() => {
+        const elapsed = Math.round((Date.now() - startTime) / 1000);
+        if (elapsed % 15 === 0 && elapsed > 0) {
+          addLog(`Still scanning... ${elapsed}s elapsed. Parsing financial data for ~171 institutions.`);
+        }
+        setRefreshProgress(`Downloading NCUA data... ${elapsed}s`);
+      }, 1000);
+
+      let qRes: Response;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let qData: any = null;
+      try {
+        qRes = await fetch("/api/scan/quarterly", { method: "POST" });
+        qData = qRes.ok ? await qRes.json() : null;
+      } finally {
+        clearInterval(timerInterval);
+      }
+      const totalTime = Math.round((Date.now() - startTime) / 1000);
+      addLog(`NCUA pipeline completed in ${totalTime}s.`);
 
       if (qData?.quarterly) {
         const q = qData.quarterly;
@@ -695,9 +716,6 @@ function HomeInner() {
 
           <div className="flex items-center gap-1">
             <ThemeToggle />
-            <button className="header-icon-btn" aria-label="Settings">
-              <Settings size={16} />
-            </button>
           </div>
         </div>
       </header>
