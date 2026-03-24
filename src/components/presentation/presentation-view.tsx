@@ -370,7 +370,7 @@ export function PresentationView({ data }: PresentationViewProps) {
   // Count data sources used
   const dataSourceCount =
     (qd ? 1 : 0) +
-    (Object.keys(fred).length > 0 ? 1 : 0) +
+    (Object.keys(fred ?? {}).length > 0 ? 1 : 0) +
     (hasZillowData ? 1 : 0) +
     (dd?.sources?.cfpb ? 1 : 0);
 
@@ -379,6 +379,7 @@ export function PresentationView({ data }: PresentationViewProps) {
   const summaryInsight = analysis?.sections?.summaryInsight ?? null;
   const isPlaceholder =
     !summaryInsight ||
+    analysis?.model === "none" ||
     summaryInsight.toLowerCase().includes("ai narratives") ||
     summaryInsight.toLowerCase().includes("pending") ||
     summaryInsight.toLowerCase().includes("api key");
@@ -678,7 +679,7 @@ export function PresentationView({ data }: PresentationViewProps) {
                       fontSize="4"
                       fontWeight="600"
                     >
-                      {METRO_DELINQUENCY[metro.name]?.toFixed(2)}%
+                      {(METRO_DELINQUENCY[metro.name] ?? 0).toFixed(2)}%
                     </text>
                   </g>
                 );
@@ -774,13 +775,13 @@ export function PresentationView({ data }: PresentationViewProps) {
             if (!tier) return null;
 
             const isHighest = tierKey === highestDelinqTier;
-            const barWidth = (tier.totalAssets / maxTierAssets) * 100;
+            const barWidth = ((tier.totalAssets ?? 0) / maxTierAssets) * 100;
 
             // Member count for this tier
-            const memberDisplay = tier.totalMembers
-              ? tier.totalMembers >= 1_000_000
-                ? `${(tier.totalMembers / 1_000_000).toFixed(1)}M`
-                : `${(tier.totalMembers / 1_000).toFixed(0)}K`
+            const memberDisplay = (tier.totalMembers ?? 0) > 0
+              ? (tier.totalMembers ?? 0) >= 1_000_000
+                ? `${((tier.totalMembers ?? 0) / 1_000_000).toFixed(1)}M`
+                : `${((tier.totalMembers ?? 0) / 1_000).toFixed(0)}K`
               : "-";
 
             return (
@@ -804,7 +805,7 @@ export function PresentationView({ data }: PresentationViewProps) {
                 <div className="font-[family-name:var(--font-display)] font-semibold text-[18px] text-foreground">
                   {TIER_DISPLAY_NAMES[tierKey] ?? tierKey}
                   <span className="font-mono text-sm text-muted ml-2">
-                    {tier.cuCount} CUs
+                    {tier.cuCount ?? 0} CUs
                   </span>
                 </div>
                 <div className="relative h-5 bg-white/[0.03] rounded-md overflow-hidden">
@@ -874,20 +875,20 @@ export function PresentationView({ data }: PresentationViewProps) {
             </div>
             <div className="flex items-baseline gap-3">
               <span className="font-[family-name:var(--font-display)] font-bold text-[48px] text-heading tabular-nums leading-none">
-                {unemployment ? `${unemployment.latestValue.toFixed(1)}%` : "5.0%"}
+                {unemployment?.latestValue != null ? `${unemployment.latestValue.toFixed(1)}%` : "5.0%"}
               </span>
-              {unemployment && (
+              {unemployment?.change != null && (
                 <span
                   className="font-mono text-xl font-semibold"
-                  style={{ color: directionColor(unemployment.change, true) }}
+                  style={{ color: directionColor(unemployment?.change, true) }}
                 >
-                  {directionArrow(unemployment.change)}
+                  {directionArrow(unemployment?.change)}
                 </span>
               )}
             </div>
             {unemployment?.previousValue != null && (
               <div className="font-mono text-sm text-muted mt-1">
-                prev: {unemployment.previousValue.toFixed(1)}%
+                prev: {(unemployment.previousValue ?? 0).toFixed(1)}%
               </div>
             )}
           </div>
@@ -906,20 +907,20 @@ export function PresentationView({ data }: PresentationViewProps) {
             </div>
             <div className="flex items-baseline gap-3">
               <span className="font-[family-name:var(--font-display)] font-bold text-[48px] text-heading tabular-nums leading-none">
-                {mortgageRate ? `${mortgageRate.latestValue.toFixed(2)}%` : "6.22%"}
+                {mortgageRate?.latestValue != null ? `${mortgageRate.latestValue.toFixed(2)}%` : "6.22%"}
               </span>
-              {mortgageRate && (
+              {mortgageRate?.change != null && (
                 <span
                   className="font-mono text-xl font-semibold"
-                  style={{ color: directionColor(mortgageRate.change, true) }}
+                  style={{ color: directionColor(mortgageRate?.change, true) }}
                 >
-                  {directionArrow(mortgageRate.change)}
+                  {directionArrow(mortgageRate?.change)}
                 </span>
               )}
             </div>
             {mortgageRate?.previousValue != null && (
               <div className="font-mono text-sm text-muted mt-1">
-                prev: {mortgageRate.previousValue.toFixed(2)}%
+                prev: {(mortgageRate.previousValue ?? 0).toFixed(2)}%
               </div>
             )}
           </div>
@@ -938,20 +939,20 @@ export function PresentationView({ data }: PresentationViewProps) {
             </div>
             <div className="flex items-baseline gap-3">
               <span className="font-[family-name:var(--font-display)] font-bold text-[48px] text-heading tabular-nums leading-none">
-                {consumerSentiment ? consumerSentiment.latestValue.toFixed(1) : "56.4"}
+                {consumerSentiment?.latestValue != null ? consumerSentiment.latestValue.toFixed(1) : "56.4"}
               </span>
-              {consumerSentiment && (
+              {consumerSentiment?.change != null && (
                 <span
                   className="font-mono text-xl font-semibold"
-                  style={{ color: directionColor(consumerSentiment.change) }}
+                  style={{ color: directionColor(consumerSentiment?.change) }}
                 >
-                  {directionArrow(consumerSentiment.change)}
+                  {directionArrow(consumerSentiment?.change)}
                 </span>
               )}
             </div>
             {consumerSentiment?.previousValue != null && (
               <div className="font-mono text-sm text-muted mt-1">
-                prev: {consumerSentiment.previousValue.toFixed(1)}
+                prev: {(consumerSentiment.previousValue ?? 0).toFixed(1)}
               </div>
             )}
           </div>
@@ -1028,7 +1029,9 @@ export function PresentationView({ data }: PresentationViewProps) {
                 transitionDelay: "0.25s",
               }}
             >
-              Average net worth ratio at 12.78%, well above the 7% well-capitalized threshold.
+              {latestQ?.statewide?.avgNetWorthRatio != null
+                ? `Average net worth ratio at ${((latestQ.statewide.avgNetWorthRatio ?? 0) / 100).toFixed(2)}%, well above the 7% well-capitalized threshold.`
+                : "Michigan credit unions remain well-capitalized above the 7% threshold."}
             </div>
             <div
               className="font-[family-name:var(--font-display)] font-medium text-[40px] leading-[1.5] text-center transition-all duration-500 ease-out"
@@ -1049,7 +1052,9 @@ export function PresentationView({ data }: PresentationViewProps) {
                 transitionDelay: "0.5s",
               }}
             >
-              Statewide rate rose from 0.65% to 0.85% across four consecutive quarters.
+              {firstQ?.statewide?.weightedDelinquencyRate != null && latestQ?.statewide?.weightedDelinquencyRate != null
+                ? `Statewide rate moved from ${(firstQ.statewide.weightedDelinquencyRate ?? 0).toFixed(2)}% to ${(latestQ.statewide.weightedDelinquencyRate ?? 0).toFixed(2)}% across ${quartersAnalyzed} quarters.`
+                : `Statewide delinquency trends warrant monitoring across ${quartersAnalyzed} quarters.`}
             </div>
             <div
               className="font-[family-name:var(--font-display)] font-medium text-[40px] leading-[1.5] text-center transition-all duration-500 ease-out"
@@ -1070,7 +1075,7 @@ export function PresentationView({ data }: PresentationViewProps) {
                 transitionDelay: "0.75s",
               }}
             >
-              8 fewer institutions, but $4.8B more in total assets than a year ago.
+              {cusLost} fewer institutions, but {formatBillions(assetChange)} more in total assets than {firstLabel}.
             </div>
           </div>
         )}
