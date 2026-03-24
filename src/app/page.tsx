@@ -361,37 +361,60 @@ function HomeInner() {
     setLoading(true);
     try {
       if (typeof window === "undefined") { setLoading(false); return; }
-      // Check localStorage for cached data first
-      const cachedQ = localStorage.getItem("mcul-quarterly");
-      const cachedD = localStorage.getItem("mcul-daily");
+
+      // Safely read from localStorage with automatic cleanup on corruption
+      let cachedQ: string | null = null;
+      let cachedD: string | null = null;
+      try {
+        cachedQ = localStorage.getItem("mcul-quarterly");
+        cachedD = localStorage.getItem("mcul-daily");
+      } catch {
+        // localStorage unavailable (private browsing, etc.)
+      }
 
       if (cachedQ) {
         try {
           const parsed = JSON.parse(cachedQ);
-          setData((prev) => ({
-            ...prev,
-            quarterly: parsed.quarterly || null,
-            analysis: parsed.analysis || null,
-            verification: parsed.verification || prev.verification || null,
-          }));
-        } catch (e) {
-          console.error("Error parsing cached quarterly data:", e);
+          // Validate the data has the expected shape before using it
+          if (parsed && typeof parsed === "object" && (parsed.quarterly || parsed.quartersAnalyzed)) {
+            setData((prev) => ({
+              ...prev,
+              quarterly: parsed.quarterly || null,
+              analysis: parsed.analysis || null,
+              verification: parsed.verification || prev.verification || null,
+            }));
+          } else {
+            // Data shape is wrong, clear it
+            localStorage.removeItem("mcul-quarterly");
+          }
+        } catch {
+          // Corrupted JSON, clear it
+          try { localStorage.removeItem("mcul-quarterly"); } catch { /* ignore */ }
         }
       }
       if (cachedD) {
         try {
           const parsed = JSON.parse(cachedD);
-          setData((prev) => ({
-            ...prev,
-            daily: parsed.dailyData || parsed,
-            verification: parsed.verification || prev.verification || null,
-          }));
-        } catch (e) {
-          console.error("Error parsing cached daily data:", e);
+          if (parsed && typeof parsed === "object") {
+            setData((prev) => ({
+              ...prev,
+              daily: parsed.dailyData || parsed,
+              verification: parsed.verification || prev.verification || null,
+            }));
+          } else {
+            localStorage.removeItem("mcul-daily");
+          }
+        } catch {
+          try { localStorage.removeItem("mcul-daily"); } catch { /* ignore */ }
         }
       }
     } catch (err) {
       console.error("Error loading cached data:", err);
+      // Nuclear option: clear all cached data if something goes wrong
+      try {
+        localStorage.removeItem("mcul-quarterly");
+        localStorage.removeItem("mcul-daily");
+      } catch { /* ignore */ }
     } finally {
       setLoading(false);
     }
