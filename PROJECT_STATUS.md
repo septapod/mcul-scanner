@@ -1,7 +1,7 @@
 # MCUL Scanner - Project Status
 
 **Updated:** 2026-03-23
-**Status:** Null safety fix deployed for all toLocaleString calls across 11 files.
+**Status:** Comprehensive null safety audit complete, 35 issues fixed across 7 files, deployed to prod.
 **URL:** https://mi.dxn.is
 **Repo:** local only
 
@@ -70,5 +70,6 @@
 - [x] Fixed FRED unemployment key lookup in presentation view (MIURN -> MIUR)
 - [x] Beat 6 narrative context sentences added (capital, delinquency, consolidation)
 - [x] Comprehensive null safety on all toLocaleString calls (safe-format.ts helper + ?? 0 guards across 11 files)
+- [x] Deep null safety audit: 35 fixes across format.ts, market-pulse, presentation-view, tier-health, statewide-overview, anomaly-flags, page.tsx (null guards on every format fn, optional chaining on nested property access, fallback defaults on all API-sourced values)
 - [ ] Add Vercel Blob for server-side persistence (when BLOB_READ_WRITE_TOKEN configured)
 - [ ] Add real data-driven sparklines to stat tiles
