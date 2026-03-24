@@ -1,7 +1,7 @@
 # MCUL Scanner - Project Status
 
 **Updated:** 2026-03-23
-**Status:** Comprehensive null safety audit complete, 35 issues fixed across 7 files, deployed to prod.
+**Status:** Placeholder analysis purged from cache and display, stale cache auto-expires after 24h, deployed to prod.
 **URL:** https://mi.dxn.is
 **Repo:** local only
 
@@ -71,5 +71,8 @@
 - [x] Beat 6 narrative context sentences added (capital, delinquency, consolidation)
 - [x] Comprehensive null safety on all toLocaleString calls (safe-format.ts helper + ?? 0 guards across 11 files)
 - [x] Deep null safety audit: 35 fixes across format.ts, market-pulse, presentation-view, tier-health, statewide-overview, anomaly-flags, page.tsx (null guards on every format fn, optional chaining on nested property access, fallback defaults on all API-sourced values)
+- [x] Placeholder analysis never cached or displayed (model "none", "pending", "API key" text filtered out)
+- [x] Emerging Trends and Risk Concentrations sections hidden when no AI analysis available
+- [x] Stale localStorage cache auto-cleared after 24 hours
 - [ ] Add Vercel Blob for server-side persistence (when BLOB_READ_WRITE_TOKEN configured)
 - [ ] Add real data-driven sparklines to stat tiles

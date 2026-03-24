@@ -35,6 +35,118 @@ const DATA_SOURCES = [
   { name: "Zillow", color: "#5a9aaa" },
 ] as const;
 
+// ── Data-derived fallbacks (when AI analysis isn't available) ────────────────
+
+function computeTrendsFromData(quarterly: QuarterlyData): Array<{trendName: string; direction: "rising" | "falling" | "accelerating" | "decelerating" | "stable"; evidence: string; implication: string}> {
+  const quarters = quarterly.quarters ?? [];
+  if (quarters.length < 2) return [];
+  const latest = quarters[quarters.length - 1];
+  const first = quarters[0];
+  const ls = latest?.statewide;
+  const fs = first?.statewide;
+  if (!ls || !fs) return [];
+
+  const trends: Array<{trendName: string; direction: "rising" | "falling" | "accelerating" | "decelerating" | "stable"; evidence: string; implication: string}> = [];
+
+  // Delinquency trend
+  const delinqChange = (ls.weightedDelinquencyRate ?? 0) - (fs.weightedDelinquencyRate ?? 0);
+  if (Math.abs(delinqChange) > 0.05) {
+    trends.push({
+      trendName: delinqChange > 0 ? "Delinquency Rising Across the State" : "Delinquency Improving Statewide",
+      direction: delinqChange > 0 ? "rising" : "falling",
+      evidence: `Weighted delinquency rate moved from ${(fs.weightedDelinquencyRate ?? 0).toFixed(2)}% to ${(ls.weightedDelinquencyRate ?? 0).toFixed(2)}% over ${quarters.length} quarters.`,
+      implication: delinqChange > 0
+        ? "Credit quality pressure is building. Monitor early-stage delinquency (30-60 day buckets) for signs of stabilization."
+        : "Credit quality is strengthening, which supports lending growth and reduces provisioning needs.",
+    });
+  }
+
+  // Asset growth trend
+  const assetGrowth = ls.totalAssets && fs.totalAssets ? ((ls.totalAssets - fs.totalAssets) / fs.totalAssets * 100) : 0;
+  if (Math.abs(assetGrowth) > 1) {
+    trends.push({
+      trendName: assetGrowth > 0 ? "Steady Asset Growth" : "Asset Contraction",
+      direction: assetGrowth > 0 ? "rising" : "falling",
+      evidence: `Total assets grew from $${((fs.totalAssets ?? 0) / 1e9).toFixed(1)}B to $${((ls.totalAssets ?? 0) / 1e9).toFixed(1)}B (${assetGrowth.toFixed(1)}%) across ${quarters.length} quarters.`,
+      implication: assetGrowth > 0
+        ? "The industry is growing despite consolidation, indicating remaining institutions are expanding."
+        : "Contraction signals competitive pressure from banks and fintechs.",
+    });
+  }
+
+  // Consolidation trend
+  const cuLost = (fs.totalCUs ?? 0) - (ls.totalCUs ?? 0);
+  if (cuLost > 0) {
+    trends.push({
+      trendName: "Continued Industry Consolidation",
+      direction: "accelerating",
+      evidence: `Michigan went from ${fs.totalCUs ?? 0} to ${ls.totalCUs ?? 0} credit unions (${cuLost} fewer) over ${quarters.length} quarters.`,
+      implication: "Smaller institutions face increasing pressure from compliance costs and technology investment requirements. Merger activity is expected to continue.",
+    });
+  }
+
+  return trends;
+}
+
+function computeRisksFromData(quarterly: QuarterlyData): Array<{riskName: string; severity: "high" | "moderate" | "low"; evidence: string; implication: string}> {
+  const quarters = quarterly.quarters ?? [];
+  if (quarters.length < 2) return [];
+  const latest = quarters[quarters.length - 1];
+  const first = quarters[0];
+  if (!latest?.tiers || !latest?.statewide) return [];
+
+  const risks: Array<{riskName: string; severity: "high" | "moderate" | "low"; evidence: string; implication: string}> = [];
+
+  // Find highest delinquency tier
+  let highTier = "";
+  let highDelinq = 0;
+  for (const [name, tier] of Object.entries(latest.tiers)) {
+    if ((tier.avgDelinquencyRate ?? 0) > highDelinq) {
+      highDelinq = tier.avgDelinquencyRate ?? 0;
+      highTier = name;
+    }
+  }
+  if (highDelinq > 0.8) {
+    risks.push({
+      riskName: `Elevated Delinquency in ${highTier.split(":")[0]?.trim() || "One"} Tier`,
+      severity: highDelinq > 1.0 ? "high" : "moderate",
+      evidence: `${highTier} shows ${highDelinq.toFixed(2)}% average delinquency, the highest among all tiers.`,
+      implication: "Institutions in this tier should review underwriting standards and monitor early-warning indicators.",
+    });
+  }
+
+  // Sustained delinquency increase
+  const allRising = quarters.length >= 3 && quarters.every((q, i) => {
+    if (i === 0) return true;
+    return (q.statewide?.weightedDelinquencyRate ?? 0) >= (quarters[i-1].statewide?.weightedDelinquencyRate ?? 0);
+  });
+  if (allRising) {
+    risks.push({
+      riskName: "Sustained Delinquency Trend",
+      severity: "high",
+      evidence: `Statewide delinquency has risen for ${quarters.length} consecutive quarters, from ${(first.statewide?.weightedDelinquencyRate ?? 0).toFixed(2)}% to ${(latest.statewide?.weightedDelinquencyRate ?? 0).toFixed(2)}%.`,
+      implication: "A multi-quarter upward trend in delinquency warrants proactive credit risk management across all tiers.",
+    });
+  }
+
+  // Community tier pressure
+  const communityTier = latest.tiers["Tier 5: Community (<$100M)"];
+  const firstCommunity = first?.tiers?.["Tier 5: Community (<$100M)"];
+  if (communityTier && firstCommunity) {
+    const cuLoss = (firstCommunity.cuCount ?? 0) - (communityTier.cuCount ?? 0);
+    if (cuLoss >= 3) {
+      risks.push({
+        riskName: "Community Tier Under Pressure",
+        severity: "moderate",
+        evidence: `Community credit unions (<$100M) lost ${cuLoss} institutions (from ${firstCommunity.cuCount ?? 0} to ${communityTier.cuCount ?? 0}) over ${quarters.length} quarters.`,
+        implication: "Scale challenges in compliance, technology, and member expectations are driving consolidation in the smallest tier.",
+      });
+    }
+  }
+
+  return risks;
+}
+
 // ── Types for page state ────────────────────────────────────────────────────
 
 interface ScannerData {
@@ -272,28 +384,32 @@ function DashboardView({
           )}
 
           {/* 4. Emerging Trends */}
-          {analysis?.sections?.emergingTrends && analysis.sections.emergingTrends.length > 0 && (
-            <section className="glass-card p-5 sm:p-6">
-              <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
-                Emerging Trends
-              </div>
-              <EmergingTrends
-                trends={analysis.sections.emergingTrends}
-              />
-            </section>
-          )}
+          <section className="glass-card p-5 sm:p-6">
+            <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
+              Emerging Trends
+            </div>
+            {analysis?.sections?.emergingTrends && analysis.sections.emergingTrends.length > 0 ? (
+              <EmergingTrends trends={analysis.sections.emergingTrends} />
+            ) : quarterly?.quarters && quarterly.quarters.length >= 2 ? (
+              <EmergingTrends trends={computeTrendsFromData(quarterly)} />
+            ) : (
+              <p className="text-muted text-center py-4">Click Refresh Data to generate trend analysis.</p>
+            )}
+          </section>
 
           {/* 5. Risk Concentrations */}
-          {analysis?.sections?.riskConcentrations && analysis.sections.riskConcentrations.length > 0 && (
-            <section className="glass-card p-5 sm:p-6">
-              <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
-                Risk Concentrations
-              </div>
-              <RiskConcentrations
-                risks={analysis.sections.riskConcentrations}
-              />
-            </section>
-          )}
+          <section className="glass-card p-5 sm:p-6">
+            <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
+              Risk Concentrations
+            </div>
+            {analysis?.sections?.riskConcentrations && analysis.sections.riskConcentrations.length > 0 ? (
+              <RiskConcentrations risks={analysis.sections.riskConcentrations} />
+            ) : quarterly?.quarters && quarterly.quarters.length >= 2 ? (
+              <RiskConcentrations risks={computeRisksFromData(quarterly)} />
+            ) : (
+              <p className="text-muted text-center py-4">Click Refresh Data to generate risk analysis.</p>
+            )}
+          </section>
 
           {/* 6. Market Pulse */}
           <section className="glass-card p-5 sm:p-6">
