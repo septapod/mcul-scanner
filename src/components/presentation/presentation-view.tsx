@@ -561,13 +561,12 @@ export function PresentationView({ data }: PresentationViewProps) {
                 opacity="0.6"
               />
 
-              {/* Metro dots */}
+              {/* Metro dots (no text labels on map, data shown in sidebar) */}
               {MICHIGAN_METROS.map((metro, i) => {
                 const r = getDotRadius(metro.name);
                 const color = getDotColor(metro.name);
                 return (
                   <g key={metro.name}>
-                    {/* Glow ring */}
                     <circle
                       cx={metro.x}
                       cy={metro.y}
@@ -593,7 +592,6 @@ export function PresentationView({ data }: PresentationViewProps) {
                         repeatCount="indefinite"
                       />
                     </circle>
-                    {/* Dot */}
                     <circle
                       cx={metro.x}
                       cy={metro.y}
@@ -601,87 +599,66 @@ export function PresentationView({ data }: PresentationViewProps) {
                       fill={color}
                       opacity="0.85"
                     />
-                    {/* Label */}
-                    <text
-                      x={metro.x + (metro.labelDx ?? 0)}
-                      y={metro.y + (metro.labelDy ?? 0) - r - 2}
-                      textAnchor={metro.anchor ?? "middle"}
-                      fill="var(--color-foreground)"
-                      fontFamily="var(--font-mono)"
-                      fontSize="4"
-                      fontWeight="500"
-                      opacity="0.7"
-                    >
-                      {metro.name}
-                    </text>
-                    {/* Delinquency rate */}
-                    <text
-                      x={metro.x + (metro.labelDx ?? 0)}
-                      y={metro.y + (metro.labelDy ?? 0) - r - 2 + 5}
-                      textAnchor={metro.anchor ?? "middle"}
-                      fill={getDotColor(metro.name)}
-                      fontFamily="var(--font-mono)"
-                      fontSize="4"
-                      fontWeight="600"
-                    >
-                      {(METRO_DELINQUENCY[metro.name] ?? 0).toFixed(2)}%
-                    </text>
                   </g>
                 );
               })}
             </svg>
           </div>
 
-          {/* Legend (40%) */}
+          {/* Metro data table (40%) */}
           <div
-            className="flex-[2] flex flex-col gap-6 transition-all duration-500 ease-out"
+            className="flex-[2] flex flex-col transition-all duration-500 ease-out"
             style={{
               opacity: currentBeat === 3 ? 1 : 0,
               transform: currentBeat === 3 ? "translateX(0)" : "translateX(16px)",
               transitionDelay: "0.3s",
             }}
           >
-            <div className="font-mono text-lg text-muted tracking-[0.12em] uppercase mb-2">
-              Delinquency by Metro Area
+            <div className="font-mono text-base text-muted tracking-[0.12em] uppercase mb-4">
+              Delinquency by Metro
             </div>
 
-            <div className="flex flex-col gap-3">
-              <div className="font-mono text-sm text-muted uppercase tracking-wide mb-1">
-                Dot size = CU concentration
-              </div>
-
-              <div className="font-mono text-sm text-muted uppercase tracking-wide mb-1">
-                Color = Delinquency rate
-              </div>
-              <div className="flex flex-col gap-2 mt-1">
-                <div className="flex items-center gap-3">
-                  <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-success)" }} />
-                  <span className="font-mono text-sm text-muted">Healthy (&lt;0.65%)</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-accent-light)" }} />
-                  <span className="font-mono text-sm text-muted">Near average (0.65-0.85%)</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-warning)" }} />
-                  <span className="font-mono text-sm text-muted">Above average (0.85-1.2%)</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-coral)" }} />
-                  <span className="font-mono text-sm text-muted">Elevated (&gt;1.2%)</span>
-                </div>
-              </div>
-              <div className="font-mono text-xs text-muted mt-3" style={{ opacity: 0.5 }}>
-                Source: NCUA 5300 Call Reports, Q4 2025
-              </div>
+            {/* Sorted metro list */}
+            <div className="flex flex-col gap-1.5">
+              {Object.entries(METRO_DELINQUENCY)
+                .sort(([, a], [, b]) => b - a)
+                .map(([name, rate]) => (
+                  <div key={name} className="flex items-center gap-3 py-1.5 px-3 rounded-lg" style={{ background: "rgba(255,255,255,0.02)" }}>
+                    <span
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ background: getDotColor(name) }}
+                    />
+                    <span className="font-[family-name:var(--font-display)] text-[17px] text-foreground flex-1">
+                      {name}
+                    </span>
+                    <span
+                      className="font-mono text-[17px] font-semibold tabular-nums"
+                      style={{ color: getDotColor(name) }}
+                    >
+                      {rate.toFixed(2)}%
+                    </span>
+                  </div>
+                ))
+              }
             </div>
 
-            <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--color-border)" }}>
-              <div className="font-mono text-2xl font-bold text-heading tabular-nums">
-                {totalCUs}
+            {/* Legend row */}
+            <div className="flex items-center gap-4 mt-4 pt-3" style={{ borderTop: "1px solid var(--color-border)" }}>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ background: "var(--color-success)" }} />
+                <span className="font-mono text-xs text-muted">&lt;0.65%</span>
               </div>
-              <div className="font-mono text-sm text-muted">
-                institutions across 10 metro areas
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ background: "var(--color-accent-light)" }} />
+                <span className="font-mono text-xs text-muted">0.65-0.85%</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ background: "var(--color-warning)" }} />
+                <span className="font-mono text-xs text-muted">0.85-1.2%</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ background: "var(--color-coral)" }} />
+                <span className="font-mono text-xs text-muted">&gt;1.2%</span>
               </div>
             </div>
           </div>
