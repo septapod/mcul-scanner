@@ -10,7 +10,7 @@ interface MarketPulseProps {
 /* ── FRED Economic Indicators ────────────────────────────── */
 
 function FREDIndicators({ series }: { series: Record<string, FREDSeries> }) {
-  const entries = Object.entries(series);
+  const entries = Object.entries(series ?? {});
 
   if (entries.length === 0) {
     return (
@@ -36,6 +36,7 @@ function FREDIndicators({ series }: { series: Record<string, FREDSeries> }) {
         }
 
         const displayValue =
+          s.latestValue == null ? "N/A" :
           s.unit === "Percent" || s.unit === "%"
             ? `${s.latestValue.toFixed(2)}%`
             : s.latestValue.toLocaleString(undefined, {
@@ -60,14 +61,15 @@ function FREDIndicators({ series }: { series: Record<string, FREDSeries> }) {
 /* ── CFPB Consumer Complaints ────────────────────────────── */
 
 function CFPBSection({ dailyData }: { dailyData: DailyData }) {
+  if (!dailyData?.sources?.cfpb) return <p className="text-muted">No CFPB data.</p>;
   const cfpb = dailyData.sources.cfpb;
 
-  const topCompanies = Object.entries(cfpb.byCompany)
+  const topCompanies = Object.entries(cfpb.byCompany ?? {})
     .map(([name, info]) => ({ name, count: info.count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 8);
 
-  const topIssues = Object.entries(cfpb.byIssue)
+  const topIssues = Object.entries(cfpb.byIssue ?? {})
     .sort((a, b) => b[1] - a[1])
     .slice(0, 6);
 
@@ -139,11 +141,12 @@ function CFPBSection({ dailyData }: { dailyData: DailyData }) {
 /* ── Zillow Housing Market ───────────────────────────────── */
 
 function ZillowSection({ dailyData }: { dailyData: DailyData }) {
+  if (!dailyData?.sources?.zillow) return <p className="text-muted">No housing data.</p>;
   const zillow = dailyData.sources.zillow;
-  const flaggedRegions = new Set(zillow.flags.map((f) => f.region));
+  const flaggedRegions = new Set((zillow.flags ?? []).map((f) => f.region));
 
   // Show ZHVI records (home values)
-  const msas = zillow.zhvi.slice(0, 12);
+  const msas = (zillow.zhvi ?? []).slice(0, 12);
 
   if (msas.length === 0) {
     return (
@@ -226,7 +229,7 @@ export function MarketPulse({ dailyData, crossref }: MarketPulseProps) {
         <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-3">
           Economic Indicators (FRED)
         </div>
-        <FREDIndicators series={dailyData.sources.fred} />
+        <FREDIndicators series={dailyData?.sources?.fred ?? {}} />
       </div>
 
       {/* CFPB */}
@@ -234,7 +237,7 @@ export function MarketPulse({ dailyData, crossref }: MarketPulseProps) {
         <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-3">
           Consumer Complaints (CFPB)
         </div>
-        <CFPBSection dailyData={dailyData} />
+        {dailyData?.sources?.cfpb && <CFPBSection dailyData={dailyData} />}
       </div>
 
       {/* Zillow */}
@@ -242,7 +245,7 @@ export function MarketPulse({ dailyData, crossref }: MarketPulseProps) {
         <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-3">
           Housing Market (Zillow)
         </div>
-        <ZillowSection dailyData={dailyData} />
+        {dailyData?.sources?.zillow && <ZillowSection dailyData={dailyData} />}
       </div>
 
       {/* Cross-reference findings */}

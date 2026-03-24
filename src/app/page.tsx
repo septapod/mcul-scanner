@@ -266,7 +266,7 @@ function DashboardView({
               </div>
               <AnomalyFlags
                 anomalies={quarterly.anomalies}
-                narratives={analysis?.sections.anomalyNarratives}
+                narratives={analysis?.sections?.anomalyNarratives}
               />
             </section>
           )}
@@ -466,7 +466,8 @@ function HomeInner() {
       if (qData?.quarterly) {
         const q = qData.quarterly;
         addLog(`Parsed ${q.quartersAnalyzed} quarters of data for ${q.quarters?.[q.quarters.length - 1]?.statewide?.totalCUs || "?"} Michigan credit unions.`);
-        addLog(`Aggregate assets: $${(q.quarters?.[q.quarters.length - 1]?.statewide?.totalAssets / 1e9).toFixed(1)}B`);
+        const lastQAssets = q.quarters?.[q.quarters.length - 1]?.statewide?.totalAssets;
+        addLog(`Aggregate assets: ${lastQAssets ? '$' + (lastQAssets / 1e9).toFixed(1) + 'B' : 'calculating...'}`);
         addLog(`Detected ${q.anomalies?.length || 0} anomalies across ${Object.keys(q.quarters?.[q.quarters.length - 1]?.tiers || {}).length} asset tiers.`);
         if (qData.analysis?.sections?.statewideOverview && qData.analysis.model !== "none") {
           addLog("AI narratives generated and verified.");

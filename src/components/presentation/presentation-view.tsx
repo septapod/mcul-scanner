@@ -15,14 +15,17 @@ import { DotAnimation } from "./dot-animation";
 // ── Formatting Helpers ──────────────────────────────────────────────────────
 
 function formatBillions(n: number): string {
+  if (n == null || isNaN(n)) return "$0.0B";
   return `$${(n / 1_000_000_000).toFixed(1)}B`;
 }
 
 function formatMembers(n: number): string {
+  if (n == null || isNaN(n)) return "0.0M";
   return `${(n / 1_000_000).toFixed(1)}M`;
 }
 
 function formatPct(n: number): string {
+  if (n == null || isNaN(n)) return "0.00%";
   return `${n.toFixed(2)}%`;
 }
 
@@ -36,6 +39,7 @@ function formatTime(): string {
 }
 
 function formatAnomalyValue(metric: string, value: number): string {
+  if (value == null) return "N/A";
   const m = metric.toLowerCase();
   if (m.includes("delinquency")) return `${value.toFixed(2)}%`;
   if (m.includes("net_worth") || m.includes("networth")) return `${(value / 100).toFixed(2)}%`;
@@ -299,23 +303,23 @@ export function PresentationView({ data }: PresentationViewProps) {
   const latestQ = qd?.quarters?.[qd.quarters.length - 1] ?? null;
   const firstQ = qd?.quarters?.[0] ?? null;
 
-  const totalCUs = latestQ?.statewide.totalCUs ?? 171;
-  const totalAssets = latestQ?.statewide.totalAssets ?? 115_400_000_000;
-  const totalMembers = latestQ?.statewide.totalMembers ?? 6_100_000;
-  const firstQAssets = firstQ?.statewide.totalAssets ?? 110_600_000_000;
+  const totalCUs = latestQ?.statewide?.totalCUs ?? 171;
+  const totalAssets = latestQ?.statewide?.totalAssets ?? 115_400_000_000;
+  const totalMembers = latestQ?.statewide?.totalMembers ?? 6_100_000;
+  const firstQAssets = firstQ?.statewide?.totalAssets ?? 110_600_000_000;
   const assetChange = totalAssets - firstQAssets;
   const assetGrowthPct =
     firstQAssets > 0 ? ((assetChange / firstQAssets) * 100).toFixed(1) : "4.3";
 
-  const firstQCUs = firstQ?.statewide.totalCUs ?? 179;
+  const firstQCUs = firstQ?.statewide?.totalCUs ?? 179;
   const cusLost = firstQCUs - totalCUs;
 
   // Quarterly delinquency for sparkline
   const quarterlyDelinq = (qd?.quarters ?? []).map(
-    (q) => q.statewide.weightedDelinquencyRate ?? q.statewide.avgDelinquencyRate
+    (q) => q.statewide?.weightedDelinquencyRate ?? q.statewide?.avgDelinquencyRate ?? 0
   );
   const quarterlyLabels = (qd?.quarters ?? []).map((q) =>
-    q.label.replace(/\s\d{4}$/, "")
+    (q.label ?? "").replace(/\s\d{4}$/, "")
   );
 
   // Tiers
@@ -819,7 +823,7 @@ export function PresentationView({ data }: PresentationViewProps) {
                     isHighest ? "text-coral font-bold" : "text-foreground"
                   }`}
                 >
-                  {formatPct(tier.avgDelinquencyRate)}
+                  {formatPct(tier.avgDelinquencyRate ?? 0)}
                 </div>
                 <div className="font-mono text-sm text-right text-muted">
                   {memberDisplay}

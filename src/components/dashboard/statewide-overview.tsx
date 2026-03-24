@@ -19,7 +19,7 @@ export function StatewideOverview({ quarters }: StatewideOverviewProps) {
   const latest = quarters[quarters.length - 1];
   const prev = quarters.length > 1 ? quarters[quarters.length - 2] : undefined;
 
-  if (!latest) return null;
+  if (!latest?.statewide) return null;
 
   const s = latest.statewide;
   const p = prev?.statewide;
@@ -44,8 +44,8 @@ export function StatewideOverview({ quarters }: StatewideOverviewProps) {
       label: "Avg Net Worth Ratio",
       value: fmtNetWorth(s.avgNetWorthRatio),
       ...(p ? (() => {
-        const currPct = s.avgNetWorthRatio / 100;
-        const prevPct = p.avgNetWorthRatio / 100;
+        const currPct = (s.avgNetWorthRatio ?? 0) / 100;
+        const prevPct = (p.avgNetWorthRatio ?? 0) / 100;
         return computeChange(currPct, prevPct);
       })() : {}),
     },

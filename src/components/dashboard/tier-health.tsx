@@ -57,16 +57,17 @@ export function TierHealth({ quarters, analysis }: TierHealthProps) {
 
   if (!latest) return null;
 
-  const tierNames = Object.keys(latest.tiers);
+  const tierNames = Object.keys(latest.tiers ?? {});
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {tierNames.map((tierName) => {
         const tier = latest.tiers[tierName];
+        if (!tier) return null;
         const prevTier = prev?.tiers[tierName];
 
         // Find analysis narrative for this tier
-        const tierAnalysis = analysis?.tierHealthSummary?.tiers.find(
+        const tierAnalysis = analysis?.tierHealthSummary?.tiers?.find(
           (t) => t.tierName === tierName,
         );
         const status = tierAnalysis?.status ?? "stable";
@@ -87,7 +88,7 @@ export function TierHealth({ quarters, analysis }: TierHealthProps) {
             })()
           : undefined;
         const nwChange = prevTier
-          ? fmtChange(tier.avgNetWorthRatio / 100, prevTier.avgNetWorthRatio / 100)
+          ? fmtChange((tier.avgNetWorthRatio ?? 0) / 100, (prevTier.avgNetWorthRatio ?? 0) / 100)
           : undefined;
         const ltsChange = prevTier
           ? fmtChange(tier.avgLoanToShare, prevTier.avgLoanToShare)

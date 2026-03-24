@@ -2,6 +2,7 @@ import type { Anomaly, AnalysisSections } from "@/lib/pipelines/types";
 import { SeverityBadge } from "@/components/ui/severity-badge";
 
 function formatAnomalyValue(value: number, metric: string): string {
+  if (value == null) return "N/A";
   if (metric === "avgNetWorthRatio" || metric.startsWith("trend_avgNetWorthRatio")) {
     return `${(value / 100).toFixed(2)}%`;
   }
@@ -30,7 +31,7 @@ const SEVERITY_ORDER: Record<string, number> = {
 };
 
 export function AnomalyFlags({ anomalies, narratives }: AnomalyFlagsProps) {
-  if (!anomalies.length) {
+  if (!anomalies?.length) {
     return (
       <div className="glass-card p-6 text-center">
         <p className="text-[15px] text-muted">No anomalies detected this quarter.</p>
@@ -80,13 +81,13 @@ export function AnomalyFlags({ anomalies, narratives }: AnomalyFlagsProps) {
               <span className="text-muted">
                 Current:{" "}
                 <span className="text-heading tabular-nums">
-                  {formatAnomalyValue(anomaly.currentValue, anomaly.metric)}
+                  {formatAnomalyValue(anomaly.currentValue ?? 0, anomaly.metric ?? "")}
                 </span>
               </span>
               <span className="text-muted">
                 Previous:{" "}
                 <span className="text-heading tabular-nums">
-                  {formatAnomalyValue(anomaly.previousValue, anomaly.metric)}
+                  {formatAnomalyValue(anomaly.previousValue ?? 0, anomaly.metric ?? "")}
                 </span>
               </span>
               <span className="text-muted">
