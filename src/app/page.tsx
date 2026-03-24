@@ -18,12 +18,12 @@ import { EmergingTrends } from "@/components/dashboard/emerging-trends";
 import { RiskConcentrations } from "@/components/dashboard/risk-concentrations";
 import { MarketPulse } from "@/components/dashboard/market-pulse";
 import { PresentationView } from "@/components/presentation/presentation-view";
+import { useProcessedData, type ProcessedData, type RawScannerData } from "@/hooks/use-processed-data";
 import type {
   QuarterlyData,
   DailyData,
   VerificationReport,
   AnalysisOutput,
-  DailyCrossRef,
 } from "@/lib/pipelines/types";
 
 // ── Static data ─────────────────────────────────────────────────────────────
@@ -34,118 +34,6 @@ const DATA_SOURCES = [
   { name: "CFPB", color: "#CF5A5A" },
   { name: "Zillow", color: "#5a9aaa" },
 ] as const;
-
-// ── Data-derived fallbacks (when AI analysis isn't available) ────────────────
-
-function computeTrendsFromData(quarterly: QuarterlyData): Array<{trendName: string; direction: "rising" | "falling" | "accelerating" | "decelerating" | "stable"; evidence: string; implication: string}> {
-  const quarters = quarterly.quarters ?? [];
-  if (quarters.length < 2) return [];
-  const latest = quarters[quarters.length - 1];
-  const first = quarters[0];
-  const ls = latest?.statewide;
-  const fs = first?.statewide;
-  if (!ls || !fs) return [];
-
-  const trends: Array<{trendName: string; direction: "rising" | "falling" | "accelerating" | "decelerating" | "stable"; evidence: string; implication: string}> = [];
-
-  // Delinquency trend
-  const delinqChange = (ls.weightedDelinquencyRate ?? 0) - (fs.weightedDelinquencyRate ?? 0);
-  if (Math.abs(delinqChange) > 0.05) {
-    trends.push({
-      trendName: delinqChange > 0 ? "Delinquency Rising Across the State" : "Delinquency Improving Statewide",
-      direction: delinqChange > 0 ? "rising" : "falling",
-      evidence: `Weighted delinquency rate moved from ${(fs.weightedDelinquencyRate ?? 0).toFixed(2)}% to ${(ls.weightedDelinquencyRate ?? 0).toFixed(2)}% over ${quarters.length} quarters.`,
-      implication: delinqChange > 0
-        ? "Credit quality pressure is building. Monitor early-stage delinquency (30-60 day buckets) for signs of stabilization."
-        : "Credit quality is strengthening, which supports lending growth and reduces provisioning needs.",
-    });
-  }
-
-  // Asset growth trend
-  const assetGrowth = ls.totalAssets && fs.totalAssets ? ((ls.totalAssets - fs.totalAssets) / fs.totalAssets * 100) : 0;
-  if (Math.abs(assetGrowth) > 1) {
-    trends.push({
-      trendName: assetGrowth > 0 ? "Steady Asset Growth" : "Asset Contraction",
-      direction: assetGrowth > 0 ? "rising" : "falling",
-      evidence: `Total assets grew from $${((fs.totalAssets ?? 0) / 1e9).toFixed(1)}B to $${((ls.totalAssets ?? 0) / 1e9).toFixed(1)}B (${assetGrowth.toFixed(1)}%) across ${quarters.length} quarters.`,
-      implication: assetGrowth > 0
-        ? "The industry is growing despite consolidation, indicating remaining institutions are expanding."
-        : "Contraction signals competitive pressure from banks and fintechs.",
-    });
-  }
-
-  // Consolidation trend
-  const cuLost = (fs.totalCUs ?? 0) - (ls.totalCUs ?? 0);
-  if (cuLost > 0) {
-    trends.push({
-      trendName: "Continued Industry Consolidation",
-      direction: "accelerating",
-      evidence: `Michigan went from ${fs.totalCUs ?? 0} to ${ls.totalCUs ?? 0} credit unions (${cuLost} fewer) over ${quarters.length} quarters.`,
-      implication: "Smaller institutions face increasing pressure from compliance costs and technology investment requirements. Merger activity is expected to continue.",
-    });
-  }
-
-  return trends;
-}
-
-function computeRisksFromData(quarterly: QuarterlyData): Array<{riskName: string; severity: "high" | "moderate" | "low"; evidence: string; implication: string}> {
-  const quarters = quarterly.quarters ?? [];
-  if (quarters.length < 2) return [];
-  const latest = quarters[quarters.length - 1];
-  const first = quarters[0];
-  if (!latest?.tiers || !latest?.statewide) return [];
-
-  const risks: Array<{riskName: string; severity: "high" | "moderate" | "low"; evidence: string; implication: string}> = [];
-
-  // Find highest delinquency tier
-  let highTier = "";
-  let highDelinq = 0;
-  for (const [name, tier] of Object.entries(latest.tiers)) {
-    if ((tier.avgDelinquencyRate ?? 0) > highDelinq) {
-      highDelinq = tier.avgDelinquencyRate ?? 0;
-      highTier = name;
-    }
-  }
-  if (highDelinq > 0.8) {
-    risks.push({
-      riskName: `Elevated Delinquency in ${highTier.split(":")[0]?.trim() || "One"} Tier`,
-      severity: highDelinq > 1.0 ? "high" : "moderate",
-      evidence: `${highTier} shows ${highDelinq.toFixed(2)}% average delinquency, the highest among all tiers.`,
-      implication: "Institutions in this tier should review underwriting standards and monitor early-warning indicators.",
-    });
-  }
-
-  // Sustained delinquency increase
-  const allRising = quarters.length >= 3 && quarters.every((q, i) => {
-    if (i === 0) return true;
-    return (q.statewide?.weightedDelinquencyRate ?? 0) >= (quarters[i-1].statewide?.weightedDelinquencyRate ?? 0);
-  });
-  if (allRising) {
-    risks.push({
-      riskName: "Sustained Delinquency Trend",
-      severity: "high",
-      evidence: `Statewide delinquency has risen for ${quarters.length} consecutive quarters, from ${(first.statewide?.weightedDelinquencyRate ?? 0).toFixed(2)}% to ${(latest.statewide?.weightedDelinquencyRate ?? 0).toFixed(2)}%.`,
-      implication: "A multi-quarter upward trend in delinquency warrants proactive credit risk management across all tiers.",
-    });
-  }
-
-  // Community tier pressure
-  const communityTier = latest.tiers["Tier 5: Community (<$100M)"];
-  const firstCommunity = first?.tiers?.["Tier 5: Community (<$100M)"];
-  if (communityTier && firstCommunity) {
-    const cuLoss = (firstCommunity.cuCount ?? 0) - (communityTier.cuCount ?? 0);
-    if (cuLoss >= 3) {
-      risks.push({
-        riskName: "Community Tier Under Pressure",
-        severity: "moderate",
-        evidence: `Community credit unions (<$100M) lost ${cuLoss} institutions (from ${firstCommunity.cuCount ?? 0} to ${communityTier.cuCount ?? 0}) over ${quarters.length} quarters.`,
-        implication: "Scale challenges in compliance, technology, and member expectations are driving consolidation in the smallest tier.",
-      });
-    }
-  }
-
-  return risks;
-}
 
 // ── Types for page state ────────────────────────────────────────────────────
 
@@ -210,20 +98,19 @@ function DashboardSkeleton() {
 
 function DashboardView({
   data,
+  rawData,
   loading,
   refreshing,
   onRefresh,
   refreshProgress,
 }: {
-  data: ScannerData;
+  data: ProcessedData;
+  rawData: ScannerData;
   loading: boolean;
   refreshing: boolean;
   onRefresh: () => void;
   refreshProgress?: string;
 }) {
-  const { quarterly, daily, verification, analysis } = data;
-  const latestQuarter = quarterly?.quarters?.[quarterly.quarters.length - 1];
-
   return (
     <main
       id="main-content"
@@ -235,7 +122,7 @@ function DashboardView({
           <div className="flex flex-col items-center gap-1 sm:gap-x-3 sm:gap-y-1 sm:flex-row sm:flex-wrap sm:justify-center">
             <span className="flex items-center gap-2 sm:gap-3">
               <span className="hero-gold">
-                {latestQuarter?.statewide?.totalCUs ?? "171"}
+                {data.totalCUs}
               </span>
               <span className="text-muted text-base sm:text-2xl font-normal">
                 institutions.
@@ -243,9 +130,7 @@ function DashboardView({
             </span>
             <span className="flex items-center gap-2 sm:gap-3">
               <span className="hero-gold">
-                {latestQuarter?.statewide?.totalAssets
-                  ? `$${(latestQuarter.statewide.totalAssets / 1e9).toFixed(1)}B`
-                  : "$115.4B"}
+                {data.totalAssets}
               </span>
               <span className="text-muted text-base sm:text-2xl font-normal">
                 in assets.
@@ -280,28 +165,20 @@ function DashboardView({
           <div className="flex items-center gap-2">
             <span className="text-muted font-mono text-sm">Last refresh</span>
             <span className="text-heading font-mono text-sm">
-              {quarterly?.generatedAt
-                ? new Date(quarterly.generatedAt).toLocaleString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                : "No data yet"}
+              {data.lastRefresh}
             </span>
           </div>
-          {verification && (
+          {rawData.verification && (
             <VerificationBadge
-              passedChecks={verification.passedChecks}
-              totalChecks={verification.totalChecks}
-              verifiedAt={verification.verifiedAt}
+              passedChecks={rawData.verification.passedChecks}
+              totalChecks={rawData.verification.totalChecks}
+              verifiedAt={rawData.verification.verifiedAt}
             />
           )}
           <div className="flex items-center gap-2">
             <span className="status-dot-live" />
             <span className="text-sm text-success font-mono">
-              {quarterly ? "Fresh" : "Awaiting scan"}
+              {data.hasData ? "Fresh" : "Awaiting scan"}
             </span>
           </div>
         </div>
@@ -312,9 +189,9 @@ function DashboardView({
         />
       </div>
 
-      {loading && !quarterly ? (
+      {loading && !data.hasData ? (
         <DashboardSkeleton />
-      ) : !quarterly && !daily ? (
+      ) : !data.hasData && !data.hasDaily ? (
         /* Empty state: no data available yet */
         <div className="glass-card p-12 sm:p-16 text-center max-w-2xl mx-auto">
           <div className="mb-6">
@@ -343,73 +220,93 @@ function DashboardView({
       ) : (
         <div className="space-y-6">
           {/* 1. Statewide Overview */}
-          {quarterly?.quarters && quarterly.quarters.length > 0 && (
+          {data.overviewMetrics.length > 0 && (
             <section className="glass-card p-5 sm:p-6">
               <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
                 Statewide Overview
               </div>
-              {analysis?.sections?.statewideOverview && (
+              {data.overview && (
                 <p className="text-[15px] text-foreground leading-relaxed mb-4">
-                  {analysis.sections.statewideOverview}
+                  {data.overview}
                 </p>
               )}
-              <StatewideOverview quarters={quarterly.quarters} />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {data.overviewMetrics.map((m) => (
+                  <StatTile
+                    key={m.label}
+                    label={m.label}
+                    value={m.value}
+                    change={m.change}
+                    changeType={m.changeType}
+                  />
+                ))}
+              </div>
             </section>
           )}
 
           {/* 2. Tier Health */}
-          {quarterly?.quarters && quarterly.quarters.length > 0 && (
+          {data.tiers.length > 0 && (
             <section className="glass-card p-5 sm:p-6">
               <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
                 Tier Health
               </div>
               <TierHealth
-                quarters={quarterly.quarters}
-                analysis={analysis?.sections}
+                quarters={rawData.quarterly?.quarters ?? []}
+                analysis={rawData.analysis?.sections}
               />
             </section>
           )}
 
           {/* 3. Anomaly Flags */}
-          {quarterly?.anomalies && quarterly.anomalies.length > 0 && (
+          {data.anomalies.length > 0 && (
             <section className="glass-card p-5 sm:p-6">
               <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
                 Flags &amp; Anomalies
               </div>
-              <AnomalyFlags
-                anomalies={quarterly.anomalies}
-                narratives={analysis?.sections?.anomalyNarratives}
-              />
+              <div className="space-y-3">
+                {data.anomalies.map((a, i) => (
+                  <FlagCard
+                    key={i}
+                    severity={a.severity}
+                    category={a.category}
+                    headline={a.headline}
+                    narrative={a.narrative ?? a.detail}
+                    watchItems={a.watchItems}
+                  />
+                ))}
+              </div>
             </section>
           )}
 
-          {/* 4. Emerging Trends */}
-          <section className="glass-card p-5 sm:p-6">
-            <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
-              Emerging Trends
-            </div>
-            {analysis?.sections?.emergingTrends && analysis.sections.emergingTrends.length > 0 ? (
-              <EmergingTrends trends={analysis.sections.emergingTrends} />
-            ) : quarterly?.quarters && quarterly.quarters.length >= 2 ? (
-              <EmergingTrends trends={computeTrendsFromData(quarterly)} />
-            ) : (
-              <p className="text-muted text-center py-4">Click Refresh Data to generate trend analysis.</p>
-            )}
-          </section>
+          {/* 4. Emerging Trends (always shows when data exists) */}
+          {data.trends.length > 0 && (
+            <section className="glass-card p-5 sm:p-6">
+              <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
+                Emerging Trends
+              </div>
+              <EmergingTrends trends={data.trends.map((t) => ({
+                trendName: t.name,
+                direction: t.direction,
+                evidence: t.evidence,
+                implication: t.implication,
+              }))} />
+            </section>
+          )}
 
-          {/* 5. Risk Concentrations */}
-          <section className="glass-card p-5 sm:p-6">
-            <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
-              Risk Concentrations
-            </div>
-            {analysis?.sections?.riskConcentrations && analysis.sections.riskConcentrations.length > 0 ? (
-              <RiskConcentrations risks={analysis.sections.riskConcentrations} />
-            ) : quarterly?.quarters && quarterly.quarters.length >= 2 ? (
-              <RiskConcentrations risks={computeRisksFromData(quarterly)} />
-            ) : (
-              <p className="text-muted text-center py-4">Click Refresh Data to generate risk analysis.</p>
-            )}
-          </section>
+          {/* 5. Risk Concentrations (always shows when data exists) */}
+          {data.risks.length > 0 && (
+            <section className="glass-card p-5 sm:p-6">
+              <div className="font-mono text-[14px] tracking-[0.15em] uppercase text-accent-light mb-4">
+                Risk Concentrations
+              </div>
+              <RiskConcentrations risks={data.risks.map((r) => ({
+                riskName: r.name,
+                severity: r.severity,
+                evidence: r.evidence,
+                implication: r.implication,
+              }))} />
+            </section>
+          )}
 
           {/* 6. Market Pulse */}
           <section className="glass-card p-5 sm:p-6">
@@ -417,42 +314,21 @@ function DashboardView({
               Market Pulse
             </div>
             <MarketPulse
-              dailyData={daily}
+              dailyData={rawData.daily}
             />
           </section>
 
-          {/* 7. Key Metrics strip (from daily FRED data) */}
-          {daily?.sources?.fred && (
+          {/* 7. Key Metrics strip (from processed FRED data) */}
+          {data.fred.length > 0 && (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              {Object.entries(daily.sources.fred)
-                .filter(([key]) => !key.startsWith("_"))
-                .filter(([, series]) => series && typeof series === "object" && "latestValue" in series)
-                .slice(0, 4)
-                .map(([key, series]) => (
-                  <StatTile
-                    key={key}
-                    label={series.name}
-                    value={
-                      series.latestValue != null
-                        ? series.unit === "percent" || series.unit === "Percent" || series.unit === "%"
-                          ? `${series.latestValue.toFixed(2)}%`
-                          : (series.latestValue ?? 0).toLocaleString()
-                        : "N/A"
-                    }
-                    change={
-                      series.yoyPctChange != null
-                        ? `${series.yoyPctChange > 0 ? "+" : ""}${series.yoyPctChange.toFixed(1)}% YoY`
-                        : undefined
-                    }
-                    changeType={
-                      series.significant
-                        ? series.yoyPctChange && series.yoyPctChange > 0
-                          ? "negative"
-                          : "positive"
-                        : "neutral"
-                    }
-                  />
-                ))}
+              {data.fred.slice(0, 4).map((s) => (
+                <StatTile
+                  key={s.id}
+                  label={s.name}
+                  value={s.value}
+                  change={s.change}
+                />
+              ))}
             </div>
           )}
         </div>
@@ -478,6 +354,9 @@ function HomeInner() {
   const [refreshing, setRefreshing] = useState(false);
   const [refreshProgress, setRefreshProgress] = useState<string | undefined>();
   const [reasoningLog, setReasoningLog] = useState<string[]>([]);
+
+  // Shared processed data hook
+  const processed = useProcessedData(data as RawScannerData);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -754,11 +633,7 @@ function HomeInner() {
     return (
       <>
         <div className="dxn-gradient-line" />
-        <PresentationView data={{
-          quarterlyData: data.quarterly,
-          dailyData: data.daily,
-          analysis: data.analysis,
-        }} />
+        <PresentationView data={processed} />
         <ModeToggle />
       </>
     );
@@ -854,7 +729,8 @@ function HomeInner() {
 
       {/* Main content */}
       <DashboardView
-        data={data}
+        data={processed}
+        rawData={data}
         loading={loading}
         refreshing={refreshing}
         onRefresh={handleRefresh}

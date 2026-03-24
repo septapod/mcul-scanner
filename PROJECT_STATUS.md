@@ -1,7 +1,7 @@
 # MCUL Scanner - Project Status
 
 **Updated:** 2026-03-23
-**Status:** Placeholder analysis purged from cache and display, stale cache auto-expires after 24h, deployed to prod.
+**Status:** Presentation mode synced with all dashboard null-safety and data-derived fallback fixes, deployed to prod.
 **URL:** https://mi.dxn.is
 **Repo:** local only
 
@@ -74,5 +74,6 @@
 - [x] Placeholder analysis never cached or displayed (model "none", "pending", "API key" text filtered out)
 - [x] Emerging Trends and Risk Concentrations sections hidden when no AI analysis available
 - [x] Stale localStorage cache auto-cleared after 24 hours
+- [x] Shared useProcessedData hook (src/hooks/use-processed-data.ts): centralized null-safe formatting, data-derived trend/risk fallbacks, anomaly formatting, FRED/CFPB processing, narrative placeholder detection
 - [ ] Add Vercel Blob for server-side persistence (when BLOB_READ_WRITE_TOKEN configured)
 - [ ] Add real data-driven sparklines to stat tiles

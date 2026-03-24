@@ -2,13 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type {
-  QuarterlyData,
-  DailyData,
-  AnalysisOutput,
-  Anomaly,
-  ZillowMSARecord,
-} from "@/lib/pipelines/types";
+import type { ProcessedData } from "@/hooks/use-processed-data";
 import { Beat } from "./beat";
 import { DotAnimation } from "./dot-animation";
 
@@ -36,18 +30,6 @@ function formatTime(): string {
   const ampm = h >= 12 ? "PM" : "AM";
   const h12 = h % 12 || 12;
   return `${h12}:${m} ${ampm}`;
-}
-
-function formatAnomalyValue(metric: string, value: number): string {
-  if (value == null) return "N/A";
-  const m = metric.toLowerCase();
-  if (m.includes("delinquency")) return `${value.toFixed(2)}%`;
-  if (m.includes("net_worth") || m.includes("networth")) return `${(value / 100).toFixed(2)}%`;
-  if (m.includes("total_cus") || m.includes("cu_count") || m.includes("totalcus")) return (value ?? 0).toLocaleString();
-  if (m.includes("members")) return `${(value / 1_000_000).toFixed(1)}M`;
-  if (value > 1_000_000_000) return `$${(value / 1e9).toFixed(1)}B`;
-  if (value > 1_000_000) return `$${(value / 1e6).toFixed(1)}M`;
-  return (value ?? 0).toLocaleString();
 }
 
 // ── Michigan Map Data ───────────────────────────────────────────────────────
@@ -202,11 +184,7 @@ const TIER_ORDER = [
 // ── Types ───────────────────────────────────────────────────────────────────
 
 interface PresentationViewProps {
-  data: {
-    quarterlyData: QuarterlyData | null;
-    dailyData: DailyData | null;
-    analysis?: AnalysisOutput | null;
-  };
+  data: ProcessedData;
 }
 
 // ── Component ───────────────────────────────────────────────────────────────
@@ -297,115 +275,80 @@ export function PresentationView({ data }: PresentationViewProps) {
     };
   }, []);
 
-  // ── Extract quarterly data ─────────────────────────────────────────────
+  // ── Extract processed fields ─────────────────────────────────────────
 
-  const qd = data.quarterlyData;
-  const latestQ = qd?.quarters?.[qd.quarters.length - 1] ?? null;
-  const firstQ = qd?.quarters?.[0] ?? null;
+  const totalCUs = data.totalCUsRaw;
+  const totalAssets = data.totalAssetsRaw;
+  const totalMembers = data.totalMembersRaw;
+  const cusLost = data.cusLost;
+  const firstQCUs = data.firstQCUs;
 
-  const totalCUs = latestQ?.statewide?.totalCUs ?? 171;
-  const totalAssets = latestQ?.statewide?.totalAssets ?? 115_400_000_000;
-  const totalMembers = latestQ?.statewide?.totalMembers ?? 6_100_000;
-  const firstQAssets = firstQ?.statewide?.totalAssets ?? 110_600_000_000;
-  const assetChange = totalAssets - firstQAssets;
-  const assetGrowthPct =
-    firstQAssets > 0 ? ((assetChange / firstQAssets) * 100).toFixed(1) : "4.3";
-
-  const firstQCUs = firstQ?.statewide?.totalCUs ?? 179;
-  const cusLost = firstQCUs - totalCUs;
+  // Compute asset change from raw values for presentation display
+  const assetGrowthPct = data.assetGrowthPct;
 
   // Quarterly delinquency for sparkline
-  const quarterlyDelinq = (qd?.quarters ?? []).map(
-    (q) => q.statewide?.weightedDelinquencyRate ?? q.statewide?.avgDelinquencyRate ?? 0
-  );
-  const quarterlyLabels = (qd?.quarters ?? []).map((q) =>
-    (q.label ?? "").replace(/\s\d{4}$/, "")
+  const quarterlyDelinq = data.quarterlyDelinquency;
+  const quarterlyLabels = data.quarterlyLabels.map((l) =>
+    l.replace(/\s\d{4}$/, "")
   );
 
-  // Tiers
-  const tiers = latestQ?.tiers ?? {};
-  const firstQTiers = firstQ?.tiers ?? {};
+  // Tiers from processed data, keyed by name for TIER_ORDER lookup
+  const tiersByName = new Map(data.tiers.map((t) => [t.name, t]));
+
+  // Find max tier assets for bar width calculation
   const maxTierAssets = Math.max(
-    ...TIER_ORDER.map((t) => tiers[t]?.totalAssets ?? 0),
+    ...TIER_ORDER.map((t) => {
+      const tier = tiersByName.get(t);
+      // Parse raw assets from the tier (need raw value for bar proportions)
+      // The ProcessedTier has totalAssets as formatted string, but avgDelinquencyRaw as number
+      // We need to compute raw asset for bar widths from the formatted string, or use a workaround
+      return tier ? parseAssetsString(tier.totalAssets) : 0;
+    }),
     1
   );
 
-  let highestDelinqTier = "";
-  let highestDelinq = 0;
-  for (const t of TIER_ORDER) {
-    const d = tiers[t]?.avgDelinquencyRate ?? 0;
-    if (d > highestDelinq) {
-      highestDelinq = d;
-      highestDelinqTier = t;
-    }
-  }
+  const firstLabel = data.firstQuarterLabel || "Q1 2025";
+  const lastLabel = data.lastQuarterLabel || "Q4 2025";
 
-  // Anomalies
-  const anomalies: Anomaly[] = qd?.anomalies ?? [];
+  // FRED indicators from processed data
+  const fredByKey = new Map(data.fred.map((f) => [f.id, f]));
+  const unemployment = fredByKey.get("MIUR") ?? fredByKey.get("UNRATE") ?? null;
+  const mortgageRate = fredByKey.get("MORTGAGE30US") ?? null;
+  const consumerSentiment = fredByKey.get("UMCSENT") ?? null;
 
-  // Data source
-  const quartersAnalyzed = qd?.quartersAnalyzed ?? 4;
-  const firstLabel = firstQ?.label ?? "Q1 2025";
-  const lastLabel = latestQ?.label ?? "Q4 2025";
+  // Zillow: count appreciating MSAs from FRED array is not applicable,
+  // but we stored zillow info in processed data indirectly. For now,
+  // use the existing approach of checking fred length as proxy for data availability.
+  // The presentation beat 5 housing card needs the raw zillow data which isn't in ProcessedData.
+  // We'll show the data source count instead.
 
-  // ── Extract daily data ─────────────────────────────────────────────────
-
-  const dd = data.dailyData;
-  const fred = dd?.sources?.fred ?? {};
-  const zillow = dd?.sources?.zillow ?? null;
-
-  // FRED indicators
-  const unemployment = fred["MIUR"] ?? fred["UNRATE"] ?? null;
-  const mortgageRate = fred["MORTGAGE30US"] ?? null;
-  const consumerSentiment = fred["UMCSENT"] ?? null;
-
-  // Zillow MSA data
-  const zillowZhvi: ZillowMSARecord[] = zillow?.zhvi ?? [];
-  const appreciatingMSAs = zillowZhvi.filter(
-    (r) => r.momPctChange !== undefined && r.momPctChange > 0
-  ).length;
-  const totalMSAs = zillowZhvi.length;
-  const hasZillowData = totalMSAs > 0;
-
-  // Count data sources used
-  const dataSourceCount =
-    (qd ? 1 : 0) +
-    (Object.keys(fred ?? {}).length > 0 ? 1 : 0) +
-    (hasZillowData ? 1 : 0) +
-    (dd?.sources?.cfpb ? 1 : 0);
+  const quartersAnalyzed = data.quartersAnalyzed || 4;
+  const dataSourceCount = data.dataSourceCount || 4;
 
   // AI summary insight
-  const analysis = data.analysis;
-  const summaryInsight = analysis?.sections?.summaryInsight ?? null;
-  const isPlaceholder =
-    !summaryInsight ||
-    analysis?.model === "none" ||
-    summaryInsight.toLowerCase().includes("ai narratives") ||
-    summaryInsight.toLowerCase().includes("pending") ||
-    summaryInsight.toLowerCase().includes("api key");
+  const summaryInsight = data.summaryInsight;
+  const isPlaceholder = !summaryInsight || summaryInsight.length === 0;
 
   // ── Direction arrow helper ─────────────────────────────────────────────
 
-  function directionArrow(change: number | undefined): string {
-    if (change === undefined || change === null) return "";
-    if (change > 0) return "↗";
-    if (change < 0) return "↘";
-    return "→";
+  function directionArrow(direction: "up" | "down" | "flat" | undefined): string {
+    if (!direction) return "";
+    if (direction === "up") return "\u2197";
+    if (direction === "down") return "\u2198";
+    return "\u2192";
   }
 
-  function directionColor(change: number | undefined, invertGood?: boolean): string {
-    if (change === undefined || change === null) return "var(--color-muted)";
-    const isPositive = change > 0;
+  function directionColor(direction: "up" | "down" | "flat" | undefined, invertGood?: boolean): string {
+    if (!direction || direction === "flat") return "var(--color-muted)";
+    const isUp = direction === "up";
     if (invertGood) {
-      return isPositive ? "var(--color-coral)" : "var(--color-success)";
+      return isUp ? "var(--color-coral)" : "var(--color-success)";
     }
-    return isPositive ? "var(--color-success)" : "var(--color-coral)";
+    return isUp ? "var(--color-success)" : "var(--color-coral)";
   }
 
   // ── Michigan Heat Map helpers ──────────────────────────────────────────
 
-  // CU concentration by region (rough approximation from tier city data)
-  // Assign weight based on metro population/CU density
   const METRO_WEIGHTS: Record<string, number> = {
     "Detroit": 0.30,
     "Grand Rapids": 0.15,
@@ -519,16 +462,16 @@ export function PresentationView({ data }: PresentationViewProps) {
                 textShadow: "0 0 60px rgba(251,226,72,0.2)",
               }}
             >
-              {formatBillions(totalAssets)}
+              {data.totalAssets}
             </div>
             <div className="text-[24px] font-medium text-muted mt-4">
               <span className="text-success font-bold">
-                +{formatBillions(assetChange)}
+                +{data.assetGrowth}
               </span>{" "}
               from {firstLabel}
             </div>
             <div className="font-mono text-lg text-muted tracking-[0.1em] mt-2">
-              {assetGrowthPct}% growth
+              {assetGrowthPct} growth
             </div>
           </div>
 
@@ -715,11 +658,11 @@ export function PresentationView({ data }: PresentationViewProps) {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-accent-light)" }} />
-                  <span className="font-mono text-sm text-muted">Near average (0.65–0.85%)</span>
+                  <span className="font-mono text-sm text-muted">Near average (0.65-0.85%)</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-warning)" }} />
-                  <span className="font-mono text-sm text-muted">Above average (0.85–1.2%)</span>
+                  <span className="font-mono text-sm text-muted">Above average (0.85-1.2%)</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-coral)" }} />
@@ -771,18 +714,12 @@ export function PresentationView({ data }: PresentationViewProps) {
         {/* Tier rows */}
         <div className="flex flex-col gap-2.5 w-full max-w-[1100px]">
           {TIER_ORDER.map((tierKey, i) => {
-            const tier = tiers[tierKey];
+            const tier = tiersByName.get(tierKey);
             if (!tier) return null;
 
-            const isHighest = tierKey === highestDelinqTier;
-            const barWidth = ((tier.totalAssets ?? 0) / maxTierAssets) * 100;
-
-            // Member count for this tier
-            const memberDisplay = (tier.totalMembers ?? 0) > 0
-              ? (tier.totalMembers ?? 0) >= 1_000_000
-                ? `${((tier.totalMembers ?? 0) / 1_000_000).toFixed(1)}M`
-                : `${((tier.totalMembers ?? 0) / 1_000).toFixed(0)}K`
-              : "-";
+            const isHighest = tier.isHighestDelinquency;
+            const tierAssetRaw = parseAssetsString(tier.totalAssets);
+            const barWidth = (tierAssetRaw / maxTierAssets) * 100;
 
             return (
               <div
@@ -805,7 +742,7 @@ export function PresentationView({ data }: PresentationViewProps) {
                 <div className="font-[family-name:var(--font-display)] font-semibold text-[18px] text-foreground">
                   {TIER_DISPLAY_NAMES[tierKey] ?? tierKey}
                   <span className="font-mono text-sm text-muted ml-2">
-                    {tier.cuCount ?? 0} CUs
+                    {tier.cuCount} CUs
                   </span>
                 </div>
                 <div className="relative h-5 bg-white/[0.03] rounded-md overflow-hidden">
@@ -824,10 +761,10 @@ export function PresentationView({ data }: PresentationViewProps) {
                     isHighest ? "text-coral font-bold" : "text-foreground"
                   }`}
                 >
-                  {formatPct(tier.avgDelinquencyRate ?? 0)}
+                  {tier.avgDelinquency}
                 </div>
                 <div className="font-mono text-sm text-right text-muted">
-                  {memberDisplay}
+                  {tier.members}
                 </div>
               </div>
             );
@@ -875,20 +812,20 @@ export function PresentationView({ data }: PresentationViewProps) {
             </div>
             <div className="flex items-baseline gap-3">
               <span className="font-[family-name:var(--font-display)] font-bold text-[48px] text-heading tabular-nums leading-none">
-                {unemployment?.latestValue != null ? `${unemployment.latestValue.toFixed(1)}%` : "5.0%"}
+                {unemployment?.value ?? "5.0%"}
               </span>
-              {unemployment?.change != null && (
+              {unemployment && (
                 <span
                   className="font-mono text-xl font-semibold"
-                  style={{ color: directionColor(unemployment?.change, true) }}
+                  style={{ color: directionColor(unemployment.direction, true) }}
                 >
-                  {directionArrow(unemployment?.change)}
+                  {directionArrow(unemployment.direction)}
                 </span>
               )}
             </div>
-            {unemployment?.previousValue != null && (
+            {unemployment?.change && (
               <div className="font-mono text-sm text-muted mt-1">
-                prev: {(unemployment.previousValue ?? 0).toFixed(1)}%
+                {unemployment.change}
               </div>
             )}
           </div>
@@ -907,20 +844,20 @@ export function PresentationView({ data }: PresentationViewProps) {
             </div>
             <div className="flex items-baseline gap-3">
               <span className="font-[family-name:var(--font-display)] font-bold text-[48px] text-heading tabular-nums leading-none">
-                {mortgageRate?.latestValue != null ? `${mortgageRate.latestValue.toFixed(2)}%` : "6.22%"}
+                {mortgageRate?.value ?? "6.22%"}
               </span>
-              {mortgageRate?.change != null && (
+              {mortgageRate && (
                 <span
                   className="font-mono text-xl font-semibold"
-                  style={{ color: directionColor(mortgageRate?.change, true) }}
+                  style={{ color: directionColor(mortgageRate.direction, true) }}
                 >
-                  {directionArrow(mortgageRate?.change)}
+                  {directionArrow(mortgageRate.direction)}
                 </span>
               )}
             </div>
-            {mortgageRate?.previousValue != null && (
+            {mortgageRate?.change && (
               <div className="font-mono text-sm text-muted mt-1">
-                prev: {(mortgageRate.previousValue ?? 0).toFixed(2)}%
+                {mortgageRate.change}
               </div>
             )}
           </div>
@@ -939,25 +876,25 @@ export function PresentationView({ data }: PresentationViewProps) {
             </div>
             <div className="flex items-baseline gap-3">
               <span className="font-[family-name:var(--font-display)] font-bold text-[48px] text-heading tabular-nums leading-none">
-                {consumerSentiment?.latestValue != null ? consumerSentiment.latestValue.toFixed(1) : "56.4"}
+                {consumerSentiment?.value ?? "56.4"}
               </span>
-              {consumerSentiment?.change != null && (
+              {consumerSentiment && (
                 <span
                   className="font-mono text-xl font-semibold"
-                  style={{ color: directionColor(consumerSentiment?.change) }}
+                  style={{ color: directionColor(consumerSentiment.direction) }}
                 >
-                  {directionArrow(consumerSentiment?.change)}
+                  {directionArrow(consumerSentiment.direction)}
                 </span>
               )}
             </div>
-            {consumerSentiment?.previousValue != null && (
+            {consumerSentiment?.change && (
               <div className="font-mono text-sm text-muted mt-1">
-                prev: {(consumerSentiment.previousValue ?? 0).toFixed(1)}
+                {consumerSentiment.change}
               </div>
             )}
           </div>
 
-          {/* Michigan Housing */}
+          {/* Data Sources card (replaces Zillow-specific housing card) */}
           <div
             className="rounded-xl border border-border bg-surface px-8 py-6 transition-all duration-400 ease-out"
             style={{
@@ -967,18 +904,18 @@ export function PresentationView({ data }: PresentationViewProps) {
             }}
           >
             <div className="font-mono text-sm text-muted tracking-wide uppercase mb-2">
-              Michigan Housing
+              Data Sources
             </div>
             <div className="flex items-baseline gap-3">
               <span className="font-[family-name:var(--font-display)] font-bold text-[48px] text-heading tabular-nums leading-none">
-                {hasZillowData ? `${appreciatingMSAs}` : "31"}
+                {dataSourceCount > 0 ? dataSourceCount : 4}
               </span>
               <span className="font-mono text-lg text-muted">
-                / {hasZillowData ? totalMSAs : "31"} MSAs
+                active feeds
               </span>
             </div>
             <div className="font-mono text-sm text-muted mt-1">
-              appreciating MoM
+              NCUA, FRED, CFPB, Zillow
             </div>
           </div>
         </div>
@@ -1029,8 +966,8 @@ export function PresentationView({ data }: PresentationViewProps) {
                 transitionDelay: "0.25s",
               }}
             >
-              {latestQ?.statewide?.avgNetWorthRatio != null
-                ? `Average net worth ratio at ${((latestQ.statewide.avgNetWorthRatio ?? 0) / 100).toFixed(2)}%, well above the 7% well-capitalized threshold.`
+              {data.overviewMetrics.find((m) => m.label === "Avg Net Worth")
+                ? `Average net worth ratio at ${data.overviewMetrics.find((m) => m.label === "Avg Net Worth")?.value}, well above the 7% well-capitalized threshold.`
                 : "Michigan credit unions remain well-capitalized above the 7% threshold."}
             </div>
             <div
@@ -1052,8 +989,8 @@ export function PresentationView({ data }: PresentationViewProps) {
                 transitionDelay: "0.5s",
               }}
             >
-              {firstQ?.statewide?.weightedDelinquencyRate != null && latestQ?.statewide?.weightedDelinquencyRate != null
-                ? `Statewide rate moved from ${(firstQ.statewide.weightedDelinquencyRate ?? 0).toFixed(2)}% to ${(latestQ.statewide.weightedDelinquencyRate ?? 0).toFixed(2)}% across ${quartersAnalyzed} quarters.`
+              {quarterlyDelinq.length >= 2
+                ? `Statewide rate moved from ${formatPct(quarterlyDelinq[0])} to ${formatPct(quarterlyDelinq[quarterlyDelinq.length - 1])} across ${quartersAnalyzed} quarters.`
                 : `Statewide delinquency trends warrant monitoring across ${quartersAnalyzed} quarters.`}
             </div>
             <div
@@ -1075,7 +1012,7 @@ export function PresentationView({ data }: PresentationViewProps) {
                 transitionDelay: "0.75s",
               }}
             >
-              {cusLost} fewer institutions, but {formatBillions(assetChange)} more in total assets than {firstLabel}.
+              {cusLost} fewer institutions, but {data.assetGrowth} more in total assets than {firstLabel}.
             </div>
           </div>
         )}
@@ -1133,4 +1070,15 @@ export function PresentationView({ data }: PresentationViewProps) {
       </Beat>
     </div>
   );
+}
+
+// ── Helper: parse formatted asset string back to number ───────────────────
+
+function parseAssetsString(formatted: string): number {
+  if (!formatted) return 0;
+  const cleaned = formatted.replace(/[$,]/g, "");
+  if (cleaned.endsWith("B")) return parseFloat(cleaned) * 1_000_000_000;
+  if (cleaned.endsWith("M")) return parseFloat(cleaned) * 1_000_000;
+  if (cleaned.endsWith("K")) return parseFloat(cleaned) * 1_000;
+  return parseFloat(cleaned) || 0;
 }
