@@ -77,5 +77,6 @@
 - [x] Shared useProcessedData hook (src/hooks/use-processed-data.ts): centralized null-safe formatting, data-derived trend/risk fallbacks, anomaly formatting, FRED/CFPB processing, narrative placeholder detection
 - [x] page.tsx refactored: DashboardView and PresentationView both consume ProcessedData from the hook. Removed duplicated computeTrendsFromData/computeRisksFromData. Dashboard sections use processed fields directly for overview metrics, anomalies, trends, risks, FRED data.
 - [x] presentation-view.tsx refactored: accepts ProcessedData instead of raw data shape. Removed all local format helpers and data extraction block. Uses processed fields for hero metrics, tiers, sparkline, FRED, narrative.
+- [x] Presentation Beat 6 synced with dashboard data: shows AI summaryInsight when isAIGenerated, appends top trend/risk pills below narrative in both AI and fallback branches.
 - [ ] Add Vercel Blob for server-side persistence (when BLOB_READ_WRITE_TOKEN configured)
 - [ ] Add real data-driven sparklines to stat tiles

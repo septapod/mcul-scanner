@@ -34,17 +34,19 @@ function formatTime(): string {
 
 // ── Michigan Map Data ───────────────────────────────────────────────────────
 
+// Lower Peninsula SVG bounds: x=631-698, y=121-212. Upper Peninsula: x=580-660, y=85-138.
+// ALL dots must be well inside these bounds (min 5px from edges).
 const MICHIGAN_METROS = [
-  { name: "Detroit",        x: 682, y: 200, region: "SE", labelDx: 6,   labelDy: -2, anchor: "start" as const },
-  { name: "Grand Rapids",   x: 625, y: 185, region: "W",  labelDx: -8,  labelDy: -2, anchor: "end" as const },
-  { name: "Lansing",        x: 650, y: 190, region: "C",  labelDx: -8,  labelDy: 0,  anchor: "end" as const },
-  { name: "Ann Arbor",      x: 668, y: 200, region: "SE", labelDx: -8,  labelDy: 0,  anchor: "end" as const },
-  { name: "Flint",          x: 668, y: 175, region: "E",  labelDx: 5,   labelDy: -1, anchor: "start" as const },
-  { name: "Kalamazoo",      x: 618, y: 198, region: "SW", labelDx: -8,  labelDy: 0,  anchor: "end" as const },
-  { name: "Traverse City",  x: 636, y: 145, region: "NW", labelDx: 5,   labelDy: -1, anchor: "start" as const },
-  { name: "Marquette",      x: 593, y: 108, region: "UP", labelDx: 5,   labelDy: -1, anchor: "start" as const },
-  { name: "Saginaw",        x: 658, y: 166, region: "E",  labelDx: -8,  labelDy: 0,  anchor: "end" as const },
-  { name: "Muskegon",       x: 613, y: 172, region: "W",  labelDx: -8,  labelDy: 0,  anchor: "end" as const },
+  { name: "Detroit",        x: 686, y: 197, region: "SE", labelDx: -8,  labelDy: -1, anchor: "end" as const },
+  { name: "Grand Rapids",   x: 641, y: 181, region: "W",  labelDx: -7,  labelDy: -1, anchor: "end" as const },
+  { name: "Lansing",        x: 658, y: 185, region: "C",  labelDx: -7,  labelDy: -1, anchor: "end" as const },
+  { name: "Ann Arbor",      x: 674, y: 194, region: "SE", labelDx: -7,  labelDy: -1, anchor: "end" as const },
+  { name: "Flint",          x: 674, y: 173, region: "E",  labelDx: 5,   labelDy: -1, anchor: "start" as const },
+  { name: "Kalamazoo",      x: 639, y: 195, region: "SW", labelDx: -7,  labelDy: -1, anchor: "end" as const },
+  { name: "Traverse City",  x: 644, y: 141, region: "NW", labelDx: 5,   labelDy: -1, anchor: "start" as const },
+  { name: "Marquette",      x: 602, y: 112, region: "UP", labelDx: 5,   labelDy: -1, anchor: "start" as const },
+  { name: "Saginaw",        x: 664, y: 167, region: "E",  labelDx: 5,   labelDy: -1, anchor: "start" as const },
+  { name: "Muskegon",       x: 637, y: 173, region: "W",  labelDx: -7,  labelDy: -1, anchor: "end" as const },
 ];
 
 // Michigan SVG path (from react-usa-map, MIT)
