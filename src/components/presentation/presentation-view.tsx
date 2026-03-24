@@ -242,7 +242,10 @@ export function PresentationView({ data }: PresentationViewProps) {
   // ── Click to advance ───────────────────────────────────────────────────
 
   useEffect(() => {
-    function handleClick() {
+    function handleClick(e: MouseEvent) {
+      // Don't advance on button/link clicks
+      const target = e.target as HTMLElement;
+      if (target.closest("button") || target.closest("a") || target.closest("[role=button]")) return;
       next();
     }
     window.addEventListener("click", handleClick);
@@ -416,16 +419,16 @@ export function PresentationView({ data }: PresentationViewProps) {
           Landscape
         </h1>
 
-        <div className="flex items-center gap-10 mt-2">
+        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-10 mt-2">
           {[
             { value: (totalCUs ?? 0).toLocaleString(), label: "institutions" },
             { value: formatBillions(totalAssets), label: "assets" },
             { value: formatMembers(totalMembers), label: "members" },
           ].map((item, i) => (
-            <div key={i} className="flex items-center gap-10">
-              {i > 0 && <span className="w-1 h-1 rounded-full bg-border" />}
+            <div key={i} className="flex items-center gap-3 sm:gap-10">
+              {i > 0 && <span className="w-1 h-1 rounded-full bg-border hidden sm:block" />}
               <div className="text-center">
-                <div className="font-mono text-[32px] font-bold text-heading tabular-nums">
+                <div className="font-mono text-[22px] sm:text-[32px] font-bold text-heading tabular-nums">
                   {item.value}
                 </div>
                 <div className="font-mono text-base text-muted tracking-wide uppercase">

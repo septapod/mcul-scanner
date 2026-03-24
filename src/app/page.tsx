@@ -630,6 +630,24 @@ function HomeInner() {
   }, [addLog]);
 
   if (mode === "present") {
+    if (!processed.hasData) {
+      return (
+        <div className="fixed inset-0 flex flex-col items-center justify-center" style={{ background: "#09090B", color: "#E4E4E7" }}>
+          <div className="dxn-gradient-line" />
+          <div className="text-center">
+            <div className="font-[family-name:var(--font-display)] text-2xl font-medium mb-4">Michigan Credit Union Scanner</div>
+            <p className="text-muted mb-6">No scan data loaded. Open the dashboard and click Refresh Data first.</p>
+            <button
+              onClick={() => { const params = new URLSearchParams(window.location.search); params.delete("mode"); window.location.search = params.toString(); }}
+              className="px-6 py-3 rounded-lg font-mono text-sm"
+              style={{ background: "rgba(67,116,129,0.15)", border: "1px solid rgba(67,116,129,0.3)", color: "#E4E4E7" }}
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </div>
+      );
+    }
     return (
       <>
         <div className="dxn-gradient-line" />
