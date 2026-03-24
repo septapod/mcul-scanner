@@ -1,7 +1,7 @@
 # MCUL Scanner - Project Status
 
 **Updated:** 2026-03-23
-**Status:** Presentation mode synced with all dashboard null-safety and data-derived fallback fixes, deployed to prod.
+**Status:** Shared ProcessedData hook consumed by both dashboard and presentation views, deployed to prod.
 **URL:** https://mi.dxn.is
 **Repo:** local only
 
@@ -75,5 +75,7 @@
 - [x] Emerging Trends and Risk Concentrations sections hidden when no AI analysis available
 - [x] Stale localStorage cache auto-cleared after 24 hours
 - [x] Shared useProcessedData hook (src/hooks/use-processed-data.ts): centralized null-safe formatting, data-derived trend/risk fallbacks, anomaly formatting, FRED/CFPB processing, narrative placeholder detection
+- [x] page.tsx refactored: DashboardView and PresentationView both consume ProcessedData from the hook. Removed duplicated computeTrendsFromData/computeRisksFromData. Dashboard sections use processed fields directly for overview metrics, anomalies, trends, risks, FRED data.
+- [x] presentation-view.tsx refactored: accepts ProcessedData instead of raw data shape. Removed all local format helpers and data extraction block. Uses processed fields for hero metrics, tiers, sparkline, FRED, narrative.
 - [ ] Add Vercel Blob for server-side persistence (when BLOB_READ_WRITE_TOKEN configured)
 - [ ] Add real data-driven sparklines to stat tiles

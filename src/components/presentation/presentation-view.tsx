@@ -934,7 +934,8 @@ export function PresentationView({ data }: PresentationViewProps) {
 
       {/* ── Beat 6: The Narrative ──────────────────────────────────────── */}
       <Beat active={currentBeat === 6} citation="Analysis based on NCUA, FRED, CFPB, and Zillow data">
-        {!isPlaceholder ? (
+        {data.isAIGenerated && summaryInsight ? (
+          /* AI-generated summary */
           <div
             className="font-[family-name:var(--font-display)] font-medium text-[36px] leading-[1.5] text-center max-w-[900px] text-foreground transition-all duration-600 ease-out"
             style={{
@@ -946,6 +947,7 @@ export function PresentationView({ data }: PresentationViewProps) {
             {summaryInsight}
           </div>
         ) : (
+          /* Data-derived fallback with context lines */
           <div className="flex flex-col items-center gap-4 max-w-[900px]">
             <div
               className="font-[family-name:var(--font-display)] font-medium text-[40px] leading-[1.5] text-center transition-all duration-500 ease-out"
@@ -1014,6 +1016,55 @@ export function PresentationView({ data }: PresentationViewProps) {
             >
               {cusLost} fewer institutions, but {data.assetGrowth} more in total assets than {firstLabel}.
             </div>
+          </div>
+        )}
+
+        {/* Key findings from analysis */}
+        {data.trends.length > 0 && (
+          <div
+            className="mt-8 flex flex-col gap-3 max-w-[900px] w-full"
+            style={{
+              opacity: currentBeat === 6 ? 1 : 0,
+              transitionDelay: "0.9s",
+              transition: "opacity 0.5s ease",
+            }}
+          >
+            <div
+              className="flex items-start gap-3 px-6 py-3 rounded-lg"
+              style={{
+                background: "rgba(67,116,129,0.08)",
+                border: "1px solid rgba(67,116,129,0.15)",
+              }}
+            >
+              <span
+                className="font-mono text-sm mt-0.5"
+                style={{ color: "var(--color-accent-light)" }}
+              >
+                TREND
+              </span>
+              <span className="text-xl text-foreground">
+                {data.trends[0].name}
+              </span>
+            </div>
+            {data.risks.length > 0 && (
+              <div
+                className="flex items-start gap-3 px-6 py-3 rounded-lg"
+                style={{
+                  background: "rgba(207,90,90,0.06)",
+                  border: "1px solid rgba(207,90,90,0.12)",
+                }}
+              >
+                <span
+                  className="font-mono text-sm mt-0.5"
+                  style={{ color: "var(--color-coral)" }}
+                >
+                  RISK
+                </span>
+                <span className="text-xl text-foreground">
+                  {data.risks[0].name}
+                </span>
+              </div>
+            )}
           </div>
         )}
       </Beat>
