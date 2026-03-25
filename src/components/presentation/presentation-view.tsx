@@ -984,16 +984,16 @@ export function PresentationView({ data }: PresentationViewProps) {
       {/* ── Beat 6: The Narrative ──────────────────────────────────────── */}
       <Beat active={currentBeat === 6} citation="Analysis based on NCUA, FRED, CFPB, and Zillow data">
         {data.isAIGenerated && summaryInsight ? (
-          /* AI-generated summary */
+          /* AI-generated summary, truncated to first two sentences for stage readability */
           <div
-            className="font-[family-name:var(--font-display)] font-medium text-[22px] leading-[1.6] text-center max-w-[840px] text-foreground transition-all duration-600 ease-out"
+            className="font-[family-name:var(--font-display)] font-medium text-[32px] leading-[1.5] text-center max-w-[900px] text-foreground transition-all duration-600 ease-out"
             style={{
               opacity: currentBeat === 6 ? 1 : 0,
               transform: currentBeat === 6 ? "translateY(0)" : "translateY(10px)",
               transitionDelay: "0.15s",
             }}
           >
-            {summaryInsight}
+            {summaryInsight.split(/(?<=\.)\s+/).slice(0, 2).join(" ")}
           </div>
         ) : (
           /* Data-derived fallback with context lines */
