@@ -636,32 +636,32 @@ export function PresentationView({ data }: PresentationViewProps) {
                     {isHovered && (
                       <g>
                         <rect
-                          x={metro.x + (metro.anchor === "end" ? -88 : 10)}
-                          y={metro.y - 18}
-                          width={78}
-                          height={28}
-                          rx={4}
+                          x={metro.x + (metro.anchor === "end" ? -32 : 6)}
+                          y={metro.y - 9}
+                          width={26}
+                          height={12}
+                          rx={1.5}
                           fill="rgba(9,9,11,0.92)"
                           stroke="rgba(42,42,50,0.8)"
-                          strokeWidth="0.5"
+                          strokeWidth="0.3"
                         />
                         <text
-                          x={metro.x + (metro.anchor === "end" ? -49 : 49)}
-                          y={metro.y - 7}
+                          x={metro.x + (metro.anchor === "end" ? -19 : 19)}
+                          y={metro.y - 3.5}
                           textAnchor="middle"
                           fill="#FAFAFA"
-                          fontSize="7"
+                          fontSize="3.2"
                           fontFamily="'DM Sans', system-ui, sans-serif"
                           fontWeight="600"
                         >
                           {metro.name}
                         </text>
                         <text
-                          x={metro.x + (metro.anchor === "end" ? -49 : 49)}
-                          y={metro.y + 3}
+                          x={metro.x + (metro.anchor === "end" ? -19 : 19)}
+                          y={metro.y + 1}
                           textAnchor="middle"
                           fill={color}
-                          fontSize="7"
+                          fontSize="3"
                           fontFamily="'JetBrains Mono', monospace"
                           fontWeight="600"
                         >
@@ -986,7 +986,7 @@ export function PresentationView({ data }: PresentationViewProps) {
         {data.isAIGenerated && summaryInsight ? (
           /* AI-generated summary */
           <div
-            className="font-[family-name:var(--font-display)] font-medium text-[36px] leading-[1.5] text-center max-w-[900px] text-foreground transition-all duration-600 ease-out"
+            className="font-[family-name:var(--font-display)] font-medium text-[22px] leading-[1.6] text-center max-w-[840px] text-foreground transition-all duration-600 ease-out"
             style={{
               opacity: currentBeat === 6 ? 1 : 0,
               transform: currentBeat === 6 ? "translateY(0)" : "translateY(10px)",
