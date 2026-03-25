@@ -1012,7 +1012,13 @@ export function PresentationView({ data }: PresentationViewProps) {
               transitionDelay: "0.15s",
             }}
           >
-            {summaryInsight.split(/(?<=\.)\s+/).slice(0, 2).join(" ")}
+            {(() => {
+              // Take first sentence only. If still too long, cut at last comma before 180 chars.
+              const first = summaryInsight.split(/(?<=\.)\s+/)[0] || summaryInsight;
+              if (first.length <= 180) return first;
+              const cut = first.lastIndexOf(",", 180);
+              return cut > 80 ? first.slice(0, cut) + "." : first.slice(0, 180) + "...";
+            })()}
           </div>
         ) : (
           /* Data-derived fallback with context lines */
