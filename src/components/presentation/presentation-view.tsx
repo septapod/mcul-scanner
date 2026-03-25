@@ -197,6 +197,7 @@ export function PresentationView({ data }: PresentationViewProps) {
   const router = useRouter();
   const [currentBeat, setCurrentBeat] = useState(1);
   const [cursorHidden, setCursorHidden] = useState(false);
+  const [hoveredMetro, setHoveredMetro] = useState<string | null>(null);
   const cursorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Navigation ──────────────────────────────────────────────────────────
@@ -576,12 +577,27 @@ export function PresentationView({ data }: PresentationViewProps) {
                 opacity="0.6"
               />
 
-              {/* Metro dots (no text labels on map, data shown in sidebar) */}
+              {/* Metro dots with hover tooltips */}
               {MICHIGAN_METROS.map((metro, i) => {
                 const r = getDotRadius(metro.name);
                 const color = getDotColor(metro.name);
+                const rate = METRO_DELINQUENCY[metro.name] ?? 0;
+                const isHovered = hoveredMetro === metro.name;
                 return (
-                  <g key={metro.name}>
+                  <g
+                    key={metro.name}
+                    onMouseEnter={() => setHoveredMetro(metro.name)}
+                    onMouseLeave={() => setHoveredMetro(null)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    {/* Invisible larger hit area */}
+                    <circle
+                      cx={metro.x}
+                      cy={metro.y}
+                      r={8}
+                      fill="transparent"
+                    />
+                    {/* Pulse ring */}
                     <circle
                       cx={metro.x}
                       cy={metro.y}
@@ -607,13 +623,52 @@ export function PresentationView({ data }: PresentationViewProps) {
                         repeatCount="indefinite"
                       />
                     </circle>
+                    {/* Dot */}
                     <circle
                       cx={metro.x}
                       cy={metro.y}
-                      r={r}
+                      r={isHovered ? r + 1.5 : r}
                       fill={color}
-                      opacity="0.85"
+                      opacity={isHovered ? 1 : 0.85}
+                      style={{ transition: "r 0.15s ease, opacity 0.15s ease" }}
                     />
+                    {/* Tooltip on hover */}
+                    {isHovered && (
+                      <g>
+                        <rect
+                          x={metro.x + (metro.anchor === "end" ? -88 : 10)}
+                          y={metro.y - 18}
+                          width={78}
+                          height={28}
+                          rx={4}
+                          fill="rgba(9,9,11,0.92)"
+                          stroke="rgba(42,42,50,0.8)"
+                          strokeWidth="0.5"
+                        />
+                        <text
+                          x={metro.x + (metro.anchor === "end" ? -49 : 49)}
+                          y={metro.y - 7}
+                          textAnchor="middle"
+                          fill="#FAFAFA"
+                          fontSize="7"
+                          fontFamily="'DM Sans', system-ui, sans-serif"
+                          fontWeight="600"
+                        >
+                          {metro.name}
+                        </text>
+                        <text
+                          x={metro.x + (metro.anchor === "end" ? -49 : 49)}
+                          y={metro.y + 3}
+                          textAnchor="middle"
+                          fill={color}
+                          fontSize="7"
+                          fontFamily="'JetBrains Mono', monospace"
+                          fontWeight="600"
+                        >
+                          {rate.toFixed(2)}%
+                        </text>
+                      </g>
+                    )}
                   </g>
                 );
               })}
