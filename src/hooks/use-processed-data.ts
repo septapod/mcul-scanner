@@ -171,9 +171,22 @@ function formatAnomalyValue(value: number | undefined | null, metric: string): s
   return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
-/** Return the tier name as-is (names are already display-ready) */
+/** Map tier names to display-ready asset ranges (handles old cached names too) */
+const TIER_NAME_MAP: Record<string, string> = {
+  "Over $5B": "Over $5B",
+  "$1B to $5B": "$1B to $5B",
+  "$500M to $1B": "$500M to $1B",
+  "$100M to $500M": "$100M to $500M",
+  "Under $100M": "Under $100M",
+  "Tier 1: Anchor (>$5B)": "Over $5B",
+  "Tier 2: Large ($1B-$5B)": "$1B to $5B",
+  "Tier 3: Mid-Large ($500M-$1B)": "$500M to $1B",
+  "Tier 4: Mid-Size ($100M-$500M)": "$100M to $500M",
+  "Tier 5: Community (<$100M)": "Under $100M",
+  "Tier 1: Mega (>$5B)": "Over $5B",
+};
 function shortTierName(fullName: string): string {
-  return fullName;
+  return TIER_NAME_MAP[fullName] ?? fullName;
 }
 
 /** Determine if an analysis narrative is a placeholder */

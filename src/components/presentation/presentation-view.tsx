@@ -168,11 +168,24 @@ function DelinquencySparkline({
 // ── Tier bar helpers ────────────────────────────────────────────────────────
 
 const TIER_DISPLAY_NAMES: Record<string, string> = {
+  // New names
   "Over $5B": "Over $5B",
   "$1B to $5B": "$1B to $5B",
   "$500M to $1B": "$500M to $1B",
   "$100M to $500M": "$100M to $500M",
   "Under $100M": "Under $100M",
+  // Backward compat for cached data with old names
+  "Tier 1: Anchor (>$5B)": "Over $5B",
+  "Tier 2: Large ($1B-$5B)": "$1B to $5B",
+  "Tier 3: Mid-Large ($500M-$1B)": "$500M to $1B",
+  "Tier 4: Mid-Size ($100M-$500M)": "$100M to $500M",
+  "Tier 5: Community (<$100M)": "Under $100M",
+  // Also handle if shortTierName extracted just the label
+  "Anchor": "Over $5B",
+  "Large": "$1B to $5B",
+  "Mid-Large": "$500M to $1B",
+  "Mid-Size": "$100M to $500M",
+  "Community": "Under $100M",
 };
 
 const TIER_ORDER = [
@@ -181,6 +194,12 @@ const TIER_ORDER = [
   "$500M to $1B",
   "$100M to $500M",
   "Under $100M",
+  // Old names for sort matching
+  "Tier 1: Anchor (>$5B)",
+  "Tier 2: Large ($1B-$5B)",
+  "Tier 3: Mid-Large ($500M-$1B)",
+  "Tier 4: Mid-Size ($100M-$500M)",
+  "Tier 5: Community (<$100M)",
 ];
 
 // ── Types ───────────────────────────────────────────────────────────────────
