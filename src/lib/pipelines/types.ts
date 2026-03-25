@@ -236,11 +236,11 @@ export interface DailyCrossRef {
 
 // Tier definitions
 export const TIERS = [
-  { name: "Tier 1: Anchor (>$5B)", threshold: 5_000_000_000 },
-  { name: "Tier 2: Large ($1B-$5B)", threshold: 1_000_000_000 },
-  { name: "Tier 3: Mid-Large ($500M-$1B)", threshold: 500_000_000 },
-  { name: "Tier 4: Mid-Size ($100M-$500M)", threshold: 100_000_000 },
-  { name: "Tier 5: Community (<$100M)", threshold: 0 },
+  { name: "Over $5B", threshold: 5_000_000_000 },
+  { name: "$1B to $5B", threshold: 1_000_000_000 },
+  { name: "$500M to $1B", threshold: 500_000_000 },
+  { name: "$100M to $500M", threshold: 100_000_000 },
+  { name: "Under $100M", threshold: 0 },
 ] as const;
 
 // NCUA field mappings

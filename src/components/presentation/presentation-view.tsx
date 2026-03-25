@@ -168,19 +168,19 @@ function DelinquencySparkline({
 // ── Tier bar helpers ────────────────────────────────────────────────────────
 
 const TIER_DISPLAY_NAMES: Record<string, string> = {
-  "Tier 1: Anchor (>$5B)": "Anchor >$5B",
-  "Tier 2: Large ($1B-$5B)": "Large $1B-$5B",
-  "Tier 3: Mid-Large ($500M-$1B)": "Mid-Large $500M-$1B",
-  "Tier 4: Mid-Size ($100M-$500M)": "Mid-Size $100M-$500M",
-  "Tier 5: Community (<$100M)": "Community <$100M",
+  "Over $5B": "Over $5B",
+  "$1B to $5B": "$1B to $5B",
+  "$500M to $1B": "$500M to $1B",
+  "$100M to $500M": "$100M to $500M",
+  "Under $100M": "Under $100M",
 };
 
 const TIER_ORDER = [
-  "Tier 1: Anchor (>$5B)",
-  "Tier 2: Large ($1B-$5B)",
-  "Tier 3: Mid-Large ($500M-$1B)",
-  "Tier 4: Mid-Size ($100M-$500M)",
-  "Tier 5: Community (<$100M)",
+  "Over $5B",
+  "$1B to $5B",
+  "$500M to $1B",
+  "$100M to $500M",
+  "Under $100M",
 ];
 
 // ── Types ───────────────────────────────────────────────────────────────────

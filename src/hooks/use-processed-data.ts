@@ -171,10 +171,9 @@ function formatAnomalyValue(value: number | undefined | null, metric: string): s
   return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
-/** Extract a short tier name: "Tier 1: Anchor (>$5B)" -> "Anchor" */
+/** Return the tier name as-is (names are already display-ready) */
 function shortTierName(fullName: string): string {
-  const match = fullName.match(/:\s*([^(]+)/);
-  return match ? match[1].trim() : fullName;
+  return fullName;
 }
 
 /** Determine if an analysis narrative is a placeholder */
