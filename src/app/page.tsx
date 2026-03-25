@@ -380,7 +380,7 @@ function HomeInner() {
           const cacheAge = parsed.quarterly?.generatedAt
             ? Date.now() - new Date(parsed.quarterly.generatedAt).getTime()
             : Infinity;
-          if (cacheAge > 24 * 60 * 60 * 1000) {
+          if (cacheAge > 7 * 24 * 60 * 60 * 1000) {
             localStorage.removeItem("mcul-quarterly");
             cachedQ = null;
           }
@@ -698,20 +698,22 @@ function HomeInner() {
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* DX Monogram */}
-            <div className="dxn-monogram">
-              <span className="text-sm font-bold text-heading tracking-tight">
-                DX
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[13px] font-mono text-muted uppercase tracking-[0.2em] leading-none">
-                Dixon Strategic Labs
-              </span>
-              <span className="text-sm font-medium text-heading leading-tight font-[family-name:var(--font-display)]">
-                Michigan Credit Union Scanner
-              </span>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/dxn-logo-white.png"
+              alt="Dixon Strategic Labs"
+              className="h-6 w-auto hidden dark:block"
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/dxn-logo-black.png"
+              alt="Dixon Strategic Labs"
+              className="h-6 w-auto dark:hidden"
+            />
+            <div className="w-px h-6 bg-border/50" />
+            <span className="text-sm font-medium text-heading leading-tight font-[family-name:var(--font-display)]">
+              Michigan Credit Union Scanner
+            </span>
           </div>
 
           <div className="flex items-center gap-1">

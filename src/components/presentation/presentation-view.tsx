@@ -413,6 +413,18 @@ export function PresentationView({ data }: PresentationViewProps) {
 
       {/* ── Beat 1: Title Card ─────────────────────────────────────────── */}
       <Beat active={currentBeat === 1} citation="Dixon Strategic Labs  |  NCUA 5300 Call Reports, Q1-Q4 2025">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/dxn-logo-white.png"
+          alt="Dixon Strategic Labs"
+          className="h-8 w-auto mx-auto mb-8 hidden dark:block"
+        />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/dxn-logo-black.png"
+          alt="Dixon Strategic Labs"
+          className="h-8 w-auto mx-auto mb-8 dark:hidden"
+        />
         <h1 className="font-[family-name:var(--font-display)] font-bold text-[56px] text-center leading-[1.15] tracking-tight text-heading mb-10">
           Michigan Credit Union
           <br />
@@ -1088,16 +1100,26 @@ export function PresentationView({ data }: PresentationViewProps) {
             mi.dxn.is
           </div>
 
-          {/* Dixon Strategic Labs mark */}
+          {/* Dixon Strategic Labs logo */}
           <div
-            className="font-mono text-xs tracking-[0.15em] uppercase mt-10 transition-opacity duration-400 ease-out"
+            className="mt-10 transition-opacity duration-400 ease-out"
             style={{
-              color: "rgba(67,116,129,0.3)",
-              opacity: currentBeat === 7 ? 1 : 0,
+              opacity: currentBeat === 7 ? 0.4 : 0,
               transitionDelay: "1s",
             }}
           >
-            Dixon Strategic Labs
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/dxn-logo-white.png"
+              alt="Dixon Strategic Labs"
+              className="h-6 w-auto mx-auto hidden dark:block"
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/dxn-logo-black.png"
+              alt="Dixon Strategic Labs"
+              className="h-6 w-auto mx-auto dark:hidden"
+            />
           </div>
         </div>
       </Beat>
