@@ -226,9 +226,17 @@ function DashboardView({
                 Statewide Overview
               </div>
               {data.overview && (
-                <p className="text-[15px] text-foreground leading-relaxed mb-4">
-                  {data.overview}
-                </p>
+                <div className="text-[15px] text-foreground leading-relaxed mb-4 space-y-3">
+                  {data.overview.split(/(?<=\.)\s+/).reduce((acc: string[][], sentence: string, i: number) => {
+                    // Group every 2 sentences into a paragraph
+                    const groupIndex = Math.floor(i / 2);
+                    if (!acc[groupIndex]) acc[groupIndex] = [];
+                    acc[groupIndex].push(sentence);
+                    return acc;
+                  }, [] as string[][]).map((group: string[], i: number) => (
+                    <p key={i}>{group.join(" ")}</p>
+                  ))}
+                </div>
               )}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {data.overviewMetrics.map((m) => (

@@ -432,7 +432,7 @@ export function PresentationView({ data }: PresentationViewProps) {
       </div>
 
       {/* ── Beat 1: Title Card ─────────────────────────────────────────── */}
-      <Beat active={currentBeat === 1} citation="Dixon Strategic Labs  |  NCUA 5300 Call Reports, Q1-Q4 2025">
+      <Beat active={currentBeat === 1} citation="Dixon Strategic Labs  |  NCUA 5300 Call Reports  |  FRED  |  CFPB  |  Zillow ZHVI">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/dxn-logo-white.png"
