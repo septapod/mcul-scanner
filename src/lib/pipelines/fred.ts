@@ -17,13 +17,10 @@ const FRED_SERIES: readonly FREDSeriesConfig[] = [
 
 const FRED_BASE_URL = "https://api.stlouisfed.org/fred/series/observations";
 
-const FRED_FALLBACK_KEY = "c8e42acf745638e304bbd1328ff2c980";
-
 function getApiKey(): string {
   const key = process.env.FRED_API_KEY;
   if (!key) {
-    console.warn("[FRED] FRED_API_KEY env var not set, using fallback key");
-    return FRED_FALLBACK_KEY;
+    throw new Error("[FRED] FRED_API_KEY env var not set. Add it to your environment.");
   }
   return key;
 }

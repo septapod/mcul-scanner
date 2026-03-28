@@ -13,8 +13,13 @@
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const seriesId = url.searchParams.get("series_id") || "MIUR";
-  const apiKey =
-    process.env.FRED_API_KEY || "c8e42acf745638e304bbd1328ff2c980";
+  const apiKey = process.env.FRED_API_KEY;
+  if (!apiKey) {
+    return Response.json(
+      { error: "FRED_API_KEY environment variable is not set" },
+      { status: 500 }
+    );
+  }
 
   const fredUrl = new URL(
     "https://api.stlouisfed.org/fred/series/observations"

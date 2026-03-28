@@ -564,7 +564,7 @@ function HomeInner() {
         if (fredSeriesKeys.length === 0) {
           addLog("FRED data empty from server (IP blocked). Fetching from browser...");
           try {
-            const FRED_KEY = "c8e42acf745638e304bbd1328ff2c980";
+            const FRED_KEY = process.env.NEXT_PUBLIC_FRED_API_KEY || "";
             const SERIES = ["MIUR","MORTGAGE30US","UMCSENT","ICSA","MIBPPRIVSA","FEDFUNDS","CPIAUCSL"];
             const oneYearAgo = new Date();
             oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
