@@ -15,7 +15,7 @@ import type {
   CrossRefFinding,
 } from "./types";
 
-const MODEL = "claude-opus-4-6";
+const MODEL = "claude-opus-4-8";
 const MAX_TOKENS = 2000;
 
 // ── Shared system prompt ─────────────────────────────────────────────────────

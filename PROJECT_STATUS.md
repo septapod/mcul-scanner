@@ -1,9 +1,13 @@
 # MCUL Scanner - Project Status
 
-**Updated:** 2026-03-24
+**Updated:** 2026-05-31
 **Status:** Three presentation mode bugs fixed (empty state, click handler, mobile stats), deployed to prod.
 **URL:** https://mi.dxn.is
 **Repo:** local only
+
+## Recent Changes
+
+- **Opus 4.8 migration (2026-05-31)** -- narrative model bumped `claude-opus-4-6` -> `claude-opus-4-8` in `src/lib/pipelines/narratives.ts` and the quarterly-scan metadata string. No API-parameter changes were needed (the calls send only model/max_tokens/system/messages). `@anthropic-ai/sdk` stays on 0.80.0. Typecheck clean.
 
 ## What's Done
 
